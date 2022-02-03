@@ -292,6 +292,8 @@
     <Compile Include="Photon\Serialization.cs" />
     <Compile Include="ReMod.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="USpeak\LoudUSpeak.cs" />
+    <Compile Include="USpeak\LowBitRateUSpeak.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ReModCE.Loader\ReModCE.Loader.csproj">

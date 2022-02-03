@@ -63,7 +63,7 @@ namespace ReModCE.EvilEyeSDK
 			PlayerWrapper.PlayersActorID = new Dictionary<int, Player>();
 			for (int i = 0; i < ReModCE.OnWorldInitEventArray.Length; i++)
 			{
-				ReModCE.OnWorldInitEventArray[i].OnWorldInit();
+                ReModCE.OnWorldInitEventArray[i].OnWorldInit();
 			}
 		}
 
