@@ -284,6 +284,7 @@
     <Compile Include="Exploits\Disconnect.cs" />
     <Compile Include="Exploits\Event1-USpeak.cs" />
     <Compile Include="Exploits\EmojiLag.cs" />
+    <Compile Include="Exploits\Event1-USpeak2.cs" />
     <Compile Include="Exploits\Event9.cs" />
     <Compile Include="Exploits\ItemLagger.cs" />
     <Compile Include="Exploits\Udon.cs" />
