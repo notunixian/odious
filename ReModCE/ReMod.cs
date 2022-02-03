@@ -55,7 +55,7 @@ namespace ReModCE
             IsVoidLoaded = File.Exists("glu32.dll");
             IsAbyssLoaded = MelonHandler.Mods.Any(m => m.Info.Name == "AbyssLoader");
 
-            if (ReModCE.IsNocturnalLoaded)
+            if (IsNocturnalLoaded)
             {
                 ReLogger.Msg("Nocturnal detected! Disabling news interactions...");
             }

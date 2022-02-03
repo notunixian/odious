@@ -81,7 +81,7 @@
     </Reference>
     <Reference Include="ReMod.Core, Version=1.0.0.0, Culture=neutral, processorArchitecture=AMD64">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\.build\Release (x64)\Modules\ReMod.Core.dll</HintPath>
+      <HintPath>..\..\.build\Release (x64)\Modules\ReMod.Core.dll</HintPath>
       <EmbedInteropTypes>False</EmbedInteropTypes>
     </Reference>
     <Reference Include="System" />
