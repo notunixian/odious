@@ -72,11 +72,11 @@ namespace ReModCE.EvilEyeSDK
         {
             if (player.GetAPIUser().IsOnMobile)
             {
-                return "<color=green>Q</color>";
+                return "<color=green>Quest</color>";
             }
             else if (player.GetVRCPlayerApi().IsUserInVR())
             {
-                return "<color=#CE00D5>V</color>";
+                return "<color=#CE00D5>VR</color>";
             }
             else
             {

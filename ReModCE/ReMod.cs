@@ -12,6 +12,7 @@ using ReMod.Core.Managers;
 using ReMod.Core.UI.Wings;
 using ReMod.Core.Unity;
 using ReModCE.Components;
+using ReModCE.Core;
 using ReModCE.EvilEyeSDK;
 using ReModCE.Loader;
 using UnhollowerRuntimeLib;
@@ -24,9 +25,10 @@ using ConfigManager = ReMod.Core.Managers.ConfigManager;
 
 namespace ReModCE
 {
-    public static class ReModCE
+    public class ReModCE
     {
         private static readonly List<ModComponent> Components = new List<ModComponent>();
+        public static ReModCE Instance;
         private static UiManager _uiManager;
         private static ConfigManager _configManager;
 
@@ -38,12 +40,20 @@ namespace ReModCE
         public static bool IsAbyssLoaded { get; private set; }
         public static bool IsOculus { get; private set; }
 
-        public static OnWorldInitEvent[] OnWorldInitEventArray { get; set; } = new OnWorldInitEvent[0];
+        public List<OnPlayerJoinEvent> onPlayerJoinEvents = new List<OnPlayerJoinEvent>();
+        public List<OnWorldInitEvent> onWorldInitEvents = new List<OnWorldInitEvent>();
+
+        public OnWorldInitEvent[] onWorldInitEventArray = new OnWorldInitEvent[0];
+
+        public OnPlayerJoinEvent[] onPlayerJoinEventArray = new OnPlayerJoinEvent[0];
 
         public static HarmonyLib.Harmony Harmony { get; private set; }
 
         public static void OnApplicationStart()
         {
+            Instance = new ReModCE();
+            ClassInjector.RegisterTypeInIl2Cpp<NamePlates>();
+
             Harmony = MelonHandler.Mods.First(m => m.Info.Name == "Odious").HarmonyInstance;
             Directory.CreateDirectory("UserData/Odious");
             ReLogger.Msg("Initializing...");
@@ -173,6 +183,7 @@ namespace ReModCE
             var visualPage = _uiManager.MainMenu.AddCategoryPage("Visuals", "Access anything that will affect your game visually", ResourceManager.GetSprite("remodce.eye"));
             visualPage.AddCategory("ESP/Highlights");
             visualPage.AddCategory("Wireframe");
+            visualPage.AddCategory("Nametags");
             
             _uiManager.MainMenu.AddMenuPage("Dynamic Bones", "Access your global dynamic bone settings", ResourceManager.GetSprite("remodce.bone"));
             _uiManager.MainMenu.AddMenuPage("Avatars", "Access avatar related settings", ResourceManager.GetSprite("remodce.hanger"));
@@ -409,6 +420,20 @@ namespace ReModCE
             {
                 m.OnSelectUser(__0, __instance.field_Public_Boolean_0);
             }
+        }
+
+        // stolen evileye code since i'm too lazy to make nameplates work with how requi does shit
+        private static void OnPlayerJoin(VRC.Player player)
+        {
+            if (player == null)
+            {
+                return;
+            }
+            if (player == PlayerWrapper.LocalPlayer())
+                WorldWrapper.Init();
+            for (int i = 0; i < Instance.onPlayerJoinEventArray.Length; i++)
+                Instance.onPlayerJoinEventArray[i].OnPlayerJoin(player);
+            PlayerWrapper.PlayersActorID.Add(player.GetActorNumber(), player);
         }
     }
 }

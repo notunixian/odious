@@ -57,14 +57,12 @@ namespace ReModCE.EvilEyeSDK
 		// Token: 0x06000108 RID: 264 RVA: 0x00007180 File Offset: 0x00005380
 		public static void Init()
 		{
-			WorldWrapper.vrc_Pickups = UnityEngine.Object.FindObjectsOfType<VRC_Pickup>();
-			WorldWrapper.udonBehaviours = UnityEngine.Object.FindObjectsOfType<UdonBehaviour>();
-			WorldWrapper.vrc_Triggers = UnityEngine.Object.FindObjectsOfType<VRC_Trigger>();
-			PlayerWrapper.PlayersActorID = new Dictionary<int, Player>();
-			for (int i = 0; i < ReModCE.OnWorldInitEventArray.Length; i++)
-			{
-                ReModCE.OnWorldInitEventArray[i].OnWorldInit();
-			}
+			vrc_Pickups = UnityEngine.Object.FindObjectsOfType<VRC_Pickup>();
+			udonBehaviours = UnityEngine.Object.FindObjectsOfType<UdonBehaviour>();
+			vrc_Triggers = UnityEngine.Object.FindObjectsOfType<VRC_Trigger>();
+			PlayerWrapper.PlayersActorID = new Dictionary<int, VRC.Player>();
+			for (int i = 0; i < ReModCE.Instance.onWorldInitEventArray.Length; i++)
+				ReModCE.Instance.onWorldInitEventArray[i].OnWorldInit();
 		}
 
 		// Token: 0x04000076 RID: 118

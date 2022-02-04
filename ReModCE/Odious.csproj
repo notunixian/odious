@@ -254,6 +254,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Components\HideSelfComponent.cs" />
+    <Compile Include="Components\NamePlatesComponent.cs" />
+    <Compile Include="Core\NamePlates.cs" />
+    <Compile Include="EvilEyeSDK\OnPlayerJoinEvent.cs" />
     <Compile Include="EvilEyeSDK\OnWorldInitEvent.cs" />
     <Compile Include="EvilEyeSDK\PlayerWrapper.cs" />
     <Compile Include="Components\AvatarFavoritesComponent.cs" />
