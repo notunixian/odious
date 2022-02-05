@@ -57,9 +57,9 @@ namespace ReModCE.Core
             frames = player._playerNet.field_Private_Byte_0;
             ping = player._playerNet.field_Private_Byte_1;
             string text = "<color=green>Stable</color>";
-            if (noUpdateCount > 30)
+            if (noUpdateCount > 200)
                 text = "<color=yellow>Lagging</color>";
-            if (noUpdateCount > 150)
+            if (noUpdateCount > 500)
                 text = "<color=red>Crashed</color>";
             statsText.text = $"[{player.GetPlatform()}] |" + $"{(player.GetIsMaster() ? " | [<color=#0352ff>HOST</color>] |" : "")}" + $" [{text}] |" + $" [FPS: {player.GetFramesColord()}] |" + $" [Ping: {player.GetPingColord()}] " + $" {(player.ClientDetect() ? " | [<color=red>ClientUser</color>]" : "")}";
         }
