@@ -6,6 +6,7 @@ using Photon.Realtime;
 using ReMod.Core.Managers;
 using System;
 using System.Reflection;
+using UnityEngine;
 using VRC.Core;
 using VRC.DataModel;
 using VRC.SDKBase;
@@ -50,8 +51,8 @@ namespace ReMod.Core
         public virtual bool ExecuteEvent(Player player, VRC_EventHandler.VrcEvent evt, VRC_EventHandler.VrcBroadcastType broadcastType, int instagatorId, float fastForward) { return false; }
         public virtual bool OnPhotonEvent(LoadBalancingClient loadBalancingClient, ref EventData eventData) { return false; }
         public virtual bool OnDownloadAvatar(ApiAvatar apiAvatar) { return false; }
-        public virtual bool OnRaiseEvent(byte eventCode, ref Il2CppSystem.Object content, RaiseEventOptions raiseEventOptions, SendOptions sendOptions) { return false; }
-        
+        public virtual bool OnRaiseEvent(byte eventCode, ref Il2CppSystem.Object content, RaiseEventOptions raiseEventOptions, SendOptions sendOptions) { return false; } 
+
         public virtual void OnOwnershipTransferred(Photon.Realtime.Player player, PhotonView photonView, bool isMaster, bool isRequest){}
         public virtual void OnBlockStateChange(Photon.Realtime.Player instigator, bool blocked){ }
         public virtual void OnMuteStateChange(Photon.Realtime.Player instigator, bool muted) { }
@@ -60,6 +61,7 @@ namespace ReMod.Core
         public virtual void OnOperationResponse(LoadBalancingClient loadBalancingClient, OperationResponse operationResponse) { }
         public virtual void OnJoinedRoom() { }
         public virtual void OnLeftRoom() { }
+        
 
         protected HarmonyMethod GetLocalPatch(string methodName)
         {

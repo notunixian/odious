@@ -17,6 +17,7 @@ using ReModCE.EvilEyeSDK;
 using ReModCE.Loader;
 using UnhollowerRuntimeLib;
 using UnhollowerRuntimeLib.XrefScans;
+using UnityEngine;
 using VRC;
 using VRC.Core;
 using VRC.DataModel;
@@ -40,20 +41,19 @@ namespace ReModCE
         public static bool IsAbyssLoaded { get; private set; }
         public static bool IsOculus { get; private set; }
 
+        // evileye shit
         public List<OnPlayerJoinEvent> onPlayerJoinEvents = new List<OnPlayerJoinEvent>();
         public List<OnWorldInitEvent> onWorldInitEvents = new List<OnWorldInitEvent>();
+        public List<OnAssetBundleLoadEvent> OnAssetBundleLoadEvents = new List<OnAssetBundleLoadEvent>();
 
         public OnWorldInitEvent[] onWorldInitEventArray = new OnWorldInitEvent[0];
-
         public OnPlayerJoinEvent[] onPlayerJoinEventArray = new OnPlayerJoinEvent[0];
+        public OnAssetBundleLoadEvent[] OnAssetBundleLoadEventArray = new OnAssetBundleLoadEvent[0];
 
         public static HarmonyLib.Harmony Harmony { get; private set; }
 
         public static void OnApplicationStart()
         {
-            Instance = new ReModCE();
-            ClassInjector.RegisterTypeInIl2Cpp<NamePlates>();
-
             Harmony = MelonHandler.Mods.First(m => m.Info.Name == "Odious").HarmonyInstance;
             Directory.CreateDirectory("UserData/Odious");
             ReLogger.Msg("Initializing...");
@@ -89,6 +89,7 @@ namespace ReModCE
 
             EnableDisableListener.RegisterSafe();
             ClassInjector.RegisterTypeInIl2Cpp<WireframeEnabler>();
+            ClassInjector.RegisterTypeInIl2Cpp<NamePlates>();
 
             SetIsOculus();
 
@@ -116,6 +117,7 @@ namespace ReModCE
             ReLogger.Msg(ConsoleColor.Cyan, "                         Requi                            ");
             ReLogger.Msg(ConsoleColor.Cyan, "                       Stellar (<3)                       ");
             ReLogger.Msg(ConsoleColor.Cyan, "          EvilEye Team (except for josh and fish)         ");
+            ReLogger.Msg(ConsoleColor.Cyan, "           teddy (had to make him a custom build)         ");
             ReLogger.Msg("------------------------------------------------------------");
         }
 
@@ -141,9 +143,36 @@ namespace ReModCE
 
         private static void InitializePatches()
         {
-            Harmony.Patch(typeof(VRCPlayer).GetMethod(nameof(VRCPlayer.Awake)), GetLocalPatch(nameof(VRCPlayerAwakePatch)));
-            Harmony.Patch(typeof(RoomManager).GetMethod(nameof(RoomManager.Method_Public_Static_Boolean_ApiWorld_ApiWorldInstance_String_Int32_0)), postfix: GetLocalPatch(nameof(EnterWorldPatch)));
-            
+            try
+            {
+                Harmony.Patch(typeof(VRCPlayer).GetMethod(nameof(VRCPlayer.Awake)), GetLocalPatch(nameof(VRCPlayerAwakePatch)));
+                MelonLogger.Msg(ConsoleColor.Green, $"Succesfully patched VRCPlayerAwake!");
+            }
+            catch (Exception e)
+            {
+                MelonLogger.Error($"Unable to patch VRCPlayerAwake!\n Exception (please send this to unixian: \n{e}");
+            }
+
+            try
+            {
+                Harmony.Patch(typeof(RoomManager).GetMethod(nameof(RoomManager.Method_Public_Static_Boolean_ApiWorld_ApiWorldInstance_String_Int32_0)), postfix: GetLocalPatch(nameof(EnterWorldPatch)));
+                MelonLogger.Msg(ConsoleColor.Green, $"Successfully patched EnterWorld!");
+            }
+            catch (Exception e)
+            {
+                MelonLogger.Error($"Unable to patch EnterWorld!\n Exception (please send this to unixian): \n{e}");
+            }
+
+            try
+            {
+                Harmony.Patch(typeof(VRC.Core.AssetManagement).GetMethod("Method_Public_Static_Object_Object_Boolean_Boolean_Boolean_0"), new HarmonyMethod(AccessTools.Method(typeof(ReModCE), nameof(OnAvatarAssetBundleLoad))));
+                MelonLogger.Msg(ConsoleColor.Green, $"Successfully patched AssetBundle!");
+            }
+            catch (Exception e)
+            {
+                MelonLogger.Error($"Unable to patch AssetBundleLog!\n Exception (please send this to unixian): \n{e}");
+            }
+
             foreach (var method in typeof(SelectedUserMenuQM).GetMethods())
             {
                 if (!method.Name.StartsWith("Method_Private_Void_IUser_PDM_"))
@@ -177,7 +206,7 @@ namespace ReModCE
 
             _uiManager = new UiManager("<color=#8c99e1>Odious</color>", ResourceManager.GetSprite("remodce.remod"));
             WingMenu = ReMirroredWingMenu.Create("Odious", "Open the Odious menu", ResourceManager.GetSprite("remodce.remod"));
-            
+
             _uiManager.MainMenu.AddMenuPage("Movement", "Access movement related settings", ResourceManager.GetSprite("remodce.running"));
             
             var visualPage = _uiManager.MainMenu.AddCategoryPage("Visuals", "Access anything that will affect your game visually", ResourceManager.GetSprite("remodce.eye"));
@@ -190,7 +219,6 @@ namespace ReModCE
             
             var utilityPage = _uiManager.MainMenu.AddCategoryPage("Utility", "Access miscellaneous settings", ResourceManager.GetSprite("remodce.tools"));
             utilityPage.AddCategory("Quality of Life");
-            utilityPage.AddCategory("VRChat News");
             
             _uiManager.MainMenu.AddMenuPage("Logging", "Access logging related settings", ResourceManager.GetSprite("remodce.log"));
             _uiManager.MainMenu.AddMenuPage("Hotkeys", "Access hotkey related settings", ResourceManager.GetSprite("remodce.keyboard"));
@@ -198,8 +226,10 @@ namespace ReModCE
             var exploitsPage = _uiManager.MainMenu.AddCategoryPage("Exploits", "haha funny vrchat game", ResourceManager.GetSprite("remodce.exploits"));
             exploitsPage.AddCategory("USpeak");
             exploitsPage.AddCategory("Events");
-            exploitsPage.AddCategory("RPC");
             exploitsPage.AddCategory("Udon");
+
+            // soon...
+            // var safetyPage = _uiManager.MainMenu.AddMenuPage("Safety", "Access protection/safety settings", ResourceManager.GetSprite("remodce.safety"));
 
             foreach (var m in Components)
             {
@@ -422,18 +452,38 @@ namespace ReModCE
             }
         }
 
-        // stolen evileye code since i'm too lazy to make nameplates work with how requi does shit
-        private static void OnPlayerJoin(VRC.Player player)
+        // i love stealing functions from evileye
+        private static bool OnAvatarAssetBundleLoad(ref UnityEngine.Object __0)
         {
-            if (player == null)
+            GameObject gameObject = __0.Cast<GameObject>();
+            bool flag = gameObject == null;
+            bool result;
+            if (flag)
             {
-                return;
+                result = true;
             }
-            if (player == PlayerWrapper.LocalPlayer())
-                WorldWrapper.Init();
-            for (int i = 0; i < Instance.onPlayerJoinEventArray.Length; i++)
-                Instance.onPlayerJoinEventArray[i].OnPlayerJoin(player);
-            PlayerWrapper.PlayersActorID.Add(player.GetActorNumber(), player);
+            else
+            {
+                bool flag2 = !gameObject.name.ToLower().Contains("avatar");
+                if (flag2)
+                {
+                    result = true;
+                }
+                else
+                {
+                    string avatarId = gameObject.GetComponent<PipelineManager>().blueprintId;
+                    for (int i = 0; i < Instance.OnAssetBundleLoadEventArray.Length; i++)
+                    {
+                        bool flag3 = !Instance.OnAssetBundleLoadEventArray[i].OnAvatarAssetBundleLoad(gameObject, avatarId);
+                        if (flag3)
+                        {
+                            return false;
+                        }
+                    }
+                    result = true;
+                }
+            }
+            return result;
         }
     }
 }

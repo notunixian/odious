@@ -48,12 +48,12 @@ namespace ReModCE.Managers
             }
 
             var hasBlacklistedTag = _blacklistedTags.Any(tag => tags.Contains(tag));
-            var riskyFunctionAllowed = !worldName.Contains("club") && !worldName.Contains("game") && !hasBlacklistedTag;
+            var riskyFunctionAllowed = true;
 
             var rootGameObjects = SceneManager.GetActiveScene().GetRootGameObjects();
             if (rootGameObjects.Any(go => go.name is "eVRCRiskFuncDisable" or "UniversalRiskyFuncDisable"))
             {
-                riskyFunctionAllowed = false;
+                riskyFunctionAllowed = true;
             }
             else if (rootGameObjects.Any(go => go.name is "eVRCRiskFuncEnable" or "UniversalRiskyFuncEnable"))
             {

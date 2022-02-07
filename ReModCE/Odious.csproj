@@ -65,10 +65,8 @@
     <Reference Include="Il2CppSystem.Runtime">
       <HintPath>D:\SteamLibrary\steamapps\common\VRChat\MelonLoader\Managed\Il2CppSystem.Runtime.dll</HintPath>
     </Reference>
-    <Reference Include="MelonLoader, Version=0.4.3.0, Culture=neutral, processorArchitecture=MSIL">
-      <Private>false</Private>
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\MelonLoader.dll</HintPath>
+    <Reference Include="MelonLoader">
+      <HintPath>D:\SteamLibrary\steamapps\common\VRChat\MelonLoader\MelonLoader.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <Private>false</Private>
@@ -81,8 +79,7 @@
     </Reference>
     <Reference Include="ReMod.Core, Version=1.0.0.0, Culture=neutral, processorArchitecture=AMD64">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\.build\Release (x64)\Modules\ReMod.Core.dll</HintPath>
-      <EmbedInteropTypes>False</EmbedInteropTypes>
+      <HintPath>..\.build\Release (x64)\Modules\ReMod.Core.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -256,6 +253,7 @@
     <Compile Include="Components\HideSelfComponent.cs" />
     <Compile Include="Components\NamePlatesComponent.cs" />
     <Compile Include="Core\NamePlates.cs" />
+    <Compile Include="EvilEyeSDK\OnAssetBundleLoadEvent.cs" />
     <Compile Include="EvilEyeSDK\OnPlayerJoinEvent.cs" />
     <Compile Include="EvilEyeSDK\OnWorldInitEvent.cs" />
     <Compile Include="EvilEyeSDK\PlayerWrapper.cs" />
@@ -328,7 +326,6 @@
     <EmbeddedResource Include="Resources\previous.png" />
     <EmbeddedResource Include="Resources\radius.png" />
     <EmbeddedResource Include="Resources\reload.png" />
-    <EmbeddedResource Include="Resources\remod.png" />
     <EmbeddedResource Include="Resources\running.png" />
     <EmbeddedResource Include="Resources\speed.png" />
     <EmbeddedResource Include="Resources\stop.png" />
@@ -336,10 +333,12 @@
     <EmbeddedResource Include="Resources\wireframe.png" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="Resources\safety.png" />
     <EmbeddedResource Include="Resources\exploits.png" />
-    <Content Include="Resources\remod.png" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\remod.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>copy /Y $(TargetFileName) S:\Games\steamapps\common\VRChat\$(TargetFileName)

@@ -18,6 +18,7 @@ namespace ReModCE.Core
         private int noUpdateCount = 0;
         private TextMeshProUGUI statsText;
         private ImageThreeSlice background;
+        private string UserID = "";
 
         public NamePlates(IntPtr ptr) : base(ptr)
         {
@@ -25,7 +26,7 @@ namespace ReModCE.Core
 
         void Start()
         {
-            Transform stats = UnityEngine.Object.Instantiate<Transform>(gameObject.transform.Find("Contents/Quick Stats"), this.gameObject.transform.Find("Contents"));
+            Transform stats = UnityEngine.Object.Instantiate<Transform>(base.gameObject.transform.Find("Contents/Quick Stats"), base.gameObject.transform.Find("Contents"));
             stats.parent = gameObject.transform.Find("Contents");
             stats.gameObject.SetActive(true);
             statsText = stats.Find("Trust Text").GetComponent<TextMeshProUGUI>();
@@ -42,6 +43,7 @@ namespace ReModCE.Core
 
             frames = player._playerNet.field_Private_Byte_0;
             ping = player._playerNet.field_Private_Byte_1;
+            UserID = player.GetAPIUser().id;
         }
 
         void Update()
@@ -57,11 +59,29 @@ namespace ReModCE.Core
             frames = player._playerNet.field_Private_Byte_0;
             ping = player._playerNet.field_Private_Byte_1;
             string text = "<color=green>Stable</color>";
+            string customrank = CustomRank(UserID);
             if (noUpdateCount > 200)
                 text = "<color=yellow>Lagging</color>";
             if (noUpdateCount > 500)
                 text = "<color=red>Crashed</color>";
-            statsText.text = $"[{player.GetPlatform()}] |" + $"{(player.GetIsMaster() ? " | [<color=#0352ff>HOST</color>] |" : "")}" + $" [{text}] |" + $" [FPS: {player.GetFramesColord()}] |" + $" [Ping: {player.GetPingColord()}] " + $" {(player.ClientDetect() ? " | [<color=red>ClientUser</color>]" : "")}";
+            statsText.text = $"{customrank}  [{player.GetPlatform()}] |" + $"{(player.GetIsMaster() ? " | [<color=#0352ff>HOST</color>] |" : "")}" + $" [{text}] |" + $" [FPS: {player.GetFramesColord()}] |" + $" [Ping: {player.GetPingColord()}] " + $" {(player.ClientDetect() ? " | [<color=red>ClientUser</color>]" : "")}";
+        }
+
+        string CustomRank(string id)
+        {
+            string rank;
+
+            // hi requi! you care about me this much?
+            if (id == "usr_da6894c5-ecc6-4dd5-bceb-9717d131f0d5")
+            {
+                rank = "[<color=#8F9CE6>Odious</color>] |";
+            }
+            else
+            {
+                rank = "";
+            }
+
+        return rank;
         }
     }
 }
