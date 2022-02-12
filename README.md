@@ -6,7 +6,7 @@
 
 Stellar (E1 Exploit, i don't know his github account so i can't link it here)
 
-EvilEye Team (Four DJ, Panda Gaming, RinLovesYou, Silly, KeafyIsHere, E-Developer) (excluding josh and fish because they are retarded)
+EvilEye Team (Four DJ, Panda Gaming, Silly, KeafyIsHere, E-Developer) (excluding josh and fish because they are retarded)
 
 Edwardus (item lagger, i also don't know his github account so i can't link it here.)
 
