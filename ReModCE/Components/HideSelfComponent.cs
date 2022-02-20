@@ -22,7 +22,15 @@ namespace ReModCE.Components
         public override void OnUiManagerInit(UiManager uiManager)
         {
             var aviMenu = uiManager.MainMenu.GetMenuPage("Avatars");
-            _HideSelfToggled = aviMenu.AddToggle("Hide Yourself", "Hides your avatar, so you can load crasher avatars or anything else.", PerformHide, _HideSelfEnabled);
+            _HideSelfToggled = aviMenu.AddToggle("Hide Self", "Prevents download manager, meaning no avatars will load until you turn this off. (fuck you charlie)", PerformHide, _HideSelfEnabled);
+        }
+        
+        // thanks area51
+        public static void ClearAssets()
+        {
+            AssetBundleDownloadManager.field_Private_Static_AssetBundleDownloadManager_0.field_Private_Cache_0.ClearCache();
+            AssetBundleDownloadManager.field_Private_Static_AssetBundleDownloadManager_0.field_Private_Queue_1_AssetBundleDownload_0.Clear();
+            AssetBundleDownloadManager.field_Private_Static_AssetBundleDownloadManager_0.field_Private_Queue_1_AssetBundleDownload_1.Clear();
         }
 
         public void PerformHide(bool value)
@@ -32,13 +40,14 @@ namespace ReModCE.Components
 
             if (_HideSelfEnabled)
             {
-                pastAviID = PlayerWrapper.LocalVRCPlayer().GetAPIAvatar().id;
-                PlayerWrapper.LocalPlayer().SetHide(true);
+                AssetBundleDownloadManager.field_Private_Static_AssetBundleDownloadManager_0.gameObject.SetActive(false);
+                ClearAssets();
             }
+
             if (!_HideSelfEnabled)
             {
-                PlayerWrapper.ChangeAvatar(pastAviID);
-                PlayerWrapper.LocalPlayer().SetHide(false);
+                ClearAssets();
+                AssetBundleDownloadManager.field_Private_Static_AssetBundleDownloadManager_0.gameObject.SetActive(true);
             }
         }
     }

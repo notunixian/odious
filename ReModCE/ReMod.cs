@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using HarmonyLib;
 using MelonLoader;
@@ -15,6 +16,7 @@ using ReModCE.Components;
 using ReModCE.Core;
 using ReModCE.EvilEyeSDK;
 using ReModCE.Loader;
+using UnhollowerBaseLib;
 using UnhollowerRuntimeLib;
 using UnhollowerRuntimeLib.XrefScans;
 using UnityEngine;
@@ -44,11 +46,13 @@ namespace ReModCE
         // evileye shit
         public List<OnPlayerJoinEvent> onPlayerJoinEvents = new List<OnPlayerJoinEvent>();
         public List<OnWorldInitEvent> onWorldInitEvents = new List<OnWorldInitEvent>();
-        public List<OnAssetBundleLoadEvent> OnAssetBundleLoadEvents = new List<OnAssetBundleLoadEvent>();
+        public List<OnAssetBundleLoadEvent> OnAssetBundleLoadEvents { get; set; }
 
         public OnWorldInitEvent[] onWorldInitEventArray = new OnWorldInitEvent[0];
         public OnPlayerJoinEvent[] onPlayerJoinEventArray = new OnPlayerJoinEvent[0];
-        public OnAssetBundleLoadEvent[] OnAssetBundleLoadEventArray = new OnAssetBundleLoadEvent[0];
+        public OnAssetBundleLoadEvent[] OnAssetBundleLoadEventArray { get; set; }
+        private unsafe delegate IntPtr AttemptAvatarDownloadDelegate(IntPtr hiddenValueTypeReturn, IntPtr thisPtr, IntPtr apiAvatarPtr, IntPtr multicastDelegatePtr, bool idfk, IntPtr nativeMethodInfo);
+        private static AttemptAvatarDownloadDelegate dgAttemptAvatarDownload;
 
         public static HarmonyLib.Harmony Harmony { get; private set; }
 
@@ -163,15 +167,52 @@ namespace ReModCE
                 MelonLogger.Error($"Unable to patch EnterWorld!\n Exception (please send this to unixian): \n{e}");
             }
 
-            try
-            {
-                Harmony.Patch(typeof(VRC.Core.AssetManagement).GetMethod("Method_Public_Static_Object_Object_Boolean_Boolean_Boolean_0"), new HarmonyMethod(AccessTools.Method(typeof(ReModCE), nameof(OnAvatarAssetBundleLoad))));
-                MelonLogger.Msg(ConsoleColor.Green, $"Successfully patched AssetBundle!");
-            }
-            catch (Exception e)
-            {
-                MelonLogger.Error($"Unable to patch AssetBundleLog!\n Exception (please send this to unixian): \n{e}");
-            }
+
+            // patches commented out here because they are experimental/cause errors and i'm not focusing on this rn
+
+
+            //try
+            //{
+            //    Harmony.Patch(typeof(AssetBundleDownloadManager).GetMethod("Method_Public_Static_Object_Object_Boolean_Boolean_Boolean_0"), GetLocalPatch(nameof(OnAvatarAssetBundleLoad)));
+            //    MelonLogger.Msg(ConsoleColor.Green, $"Successfully patched AssetBundle!");
+            //}
+            //catch (Exception e)
+            //{
+            //    MelonLogger.Error($"Unable to patch AssetBundle!\n Exception (please send this to unixian): \n{e}");
+            //}
+
+            // i stole this from munchen
+
+            //try
+            //{
+            //    Harmony.Patch(typeof(QuickMenu).GetMethods().First(mb => mb.Name.StartsWith("Method_Public_Void_Boolean_") && mb.Name.Length <= 29 && mb.Name.Contains("PDM") == false && XrefUtils.CheckUsing(mb, "Method_Public_Static_Boolean_byref_Boolean_0", typeof(VRCInputManager)) == true), null, GetLocalPatch(nameof(QuickMenuOpenPatch)));
+            //    MelonLogger.Msg(ConsoleColor.Green, $"Successfully patched QuickMenu!");
+            //}
+            //catch (Exception e)
+            //{
+            //    MelonLogger.Error($"Unable to patch QuickMenu!\n Exception (please send this to unixian): \n{e}");
+            //}
+
+            //// thanks bundlebouncer
+            //try
+            //{
+            //    unsafe
+            //    {
+            //        var originalMethodPointer = *(IntPtr*)(IntPtr)UnhollowerUtils
+            //            .GetIl2CppMethodInfoPointerFieldForGeneratedMethod(typeof(AssetBundleDownloadManager).GetMethod(
+            //                nameof(AssetBundleDownloadManager.Method_Internal_UniTask_1_InterfacePublicAbstractIDisposableGaObGaUnique_ApiAvatar_MulticastDelegateNInternalSealedVoUnUnique_Boolean_0)))
+            //            .GetValue(null);
+
+            //        MelonUtils.NativeHookAttach((IntPtr)(&originalMethodPointer), typeof(Patches).GetMethod(nameof(ReModCE.OnAttemptAvatarDownload), BindingFlags.Static | BindingFlags.NonPublic).MethodHandle.GetFunctionPointer());
+
+            //        dgAttemptAvatarDownload = Marshal.GetDelegateForFunctionPointer<AttemptAvatarDownloadDelegate>(originalMethodPointer);
+            //        MelonLogger.Msg(ConsoleColor.Green, $"Successfully patched AssetBundle!");
+            //    }
+            //}
+            //catch(Exception e)
+            //{
+            //    MelonLogger.Error($"Unable to patch AssetBundle!\n Exception (please send this to unixian): \n{e}");
+            //}
 
             foreach (var method in typeof(SelectedUserMenuQM).GetMethods())
             {
@@ -227,6 +268,7 @@ namespace ReModCE
             exploitsPage.AddCategory("USpeak");
             exploitsPage.AddCategory("Events");
             exploitsPage.AddCategory("Udon");
+            exploitsPage.AddCategory("Avatar");
 
             // soon...
             // var safetyPage = _uiManager.MainMenu.AddMenuPage("Safety", "Access protection/safety settings", ResourceManager.GetSprite("remodce.safety"));
@@ -452,38 +494,38 @@ namespace ReModCE
             }
         }
 
-        // i love stealing functions from evileye
-        private static bool OnAvatarAssetBundleLoad(ref UnityEngine.Object __0)
+
+        // from bundlebouncer
+        static unsafe IntPtr OnAttemptAvatarDownload(IntPtr hiddenStructReturn, IntPtr thisPtr, IntPtr pApiAvatar, IntPtr pMulticastDelegate, bool param_3, IntPtr nativeMethodInfo)
         {
-            GameObject gameObject = __0.Cast<GameObject>();
-            bool flag = gameObject == null;
-            bool result;
-            if (flag)
+            using (var ctx = new AttemptAvatarDownloadContext(pApiAvatar == IntPtr.Zero ? null : new ApiAvatar(pApiAvatar)))
             {
-                result = true;
+                var av = AttemptAvatarDownloadContext.apiAvatar;
+                MelonLogger.Msg($"Attempting to download avatar {av.id} ({av.name}) via AssetBundleDownloadManager...");
+
+                return dgAttemptAvatarDownload(hiddenStructReturn, thisPtr, pApiAvatar, pMulticastDelegate, param_3, nativeMethodInfo);
             }
-            else
+        }
+
+        private struct AttemptAvatarDownloadContext : IDisposable
+        {
+            internal static ApiAvatar apiAvatar;
+
+            public AttemptAvatarDownloadContext(ApiAvatar iApiAvatar)
             {
-                bool flag2 = !gameObject.name.ToLower().Contains("avatar");
-                if (flag2)
-                {
-                    result = true;
-                }
-                else
-                {
-                    string avatarId = gameObject.GetComponent<PipelineManager>().blueprintId;
-                    for (int i = 0; i < Instance.OnAssetBundleLoadEventArray.Length; i++)
-                    {
-                        bool flag3 = !Instance.OnAssetBundleLoadEventArray[i].OnAvatarAssetBundleLoad(gameObject, avatarId);
-                        if (flag3)
-                        {
-                            return false;
-                        }
-                    }
-                    result = true;
-                }
+                apiAvatar = iApiAvatar;
             }
-            return result;
+
+            public void Dispose()
+            {
+                apiAvatar = null;
+            }
+        }
+
+        public static void QuickMenuOpenPatch()
+        {
+            // this will be used for some stuff later
+            bool isQuickMenuOpen = true;
         }
     }
 }

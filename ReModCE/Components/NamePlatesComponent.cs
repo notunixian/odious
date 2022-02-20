@@ -45,6 +45,11 @@ namespace ReModCE.Components
 
         public void RunOnce(bool enabled)
         {
+            if(enabled == false)
+            {
+                return;
+            }
+
             try
             {
                 for (int i = 0; i < PlayerWrapper.GetAllPlayers().Length; i++)

@@ -5,7 +5,6 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using VRC.UI.Elements.Controls;
-using ReModCE.Core;
 
 namespace ReMod.Core.UI.QuickMenu
 {

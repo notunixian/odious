@@ -27,7 +27,7 @@ namespace ReMod.Core
     public class ModComponent
     {
         public virtual void OnUiManagerInitEarly(){}
-        public virtual void OnUiManagerInit(UiManager uiManager){}
+        public virtual void OnUiManagerInit(UiManager uiManager) { }
         public virtual void OnFixedUpdate(){}
         public virtual void OnUpdate(){}
         public virtual void OnLateUpdate(){}

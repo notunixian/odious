@@ -57,10 +57,6 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\MelonLoader.dll</HintPath>
     </Reference>
-    <Reference Include="Odious, Version=1.0.0.0, Culture=neutral, processorArchitecture=AMD64">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\.build\Release (x64)\Modules\Odious.dll</HintPath>
-    </Reference>
     <Reference Include="Photon-DotNet">
       <HintPath>D:\SteamLibrary\steamapps\common\VRChat\MelonLoader\Managed\Photon-DotNet.dll</HintPath>
       <Private>False</Private>
