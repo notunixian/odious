@@ -117,11 +117,12 @@ namespace ReModCE
             ReLogger.Msg(ConsoleColor.Cyan, "                                                          ");
             ReLogger.Msg(ConsoleColor.Cyan, "                       Credits:                           ");
             ReLogger.Msg(ConsoleColor.Cyan, "                                                          ");
-            ReLogger.Msg(ConsoleColor.Cyan, "                   Charlie (ur cute)                      ");
-            ReLogger.Msg(ConsoleColor.Cyan, "                         Requi                            ");
-            ReLogger.Msg(ConsoleColor.Cyan, "                       Stellar (<3)                       ");
-            ReLogger.Msg(ConsoleColor.Cyan, "          EvilEye Team (except for josh and fish)         ");
-            ReLogger.Msg(ConsoleColor.Cyan, "           teddy (had to make him a custom build)         ");
+            ReLogger.Msg(ConsoleColor.Cyan, "                       Charlie                            ");
+            ReLogger.Msg(ConsoleColor.Cyan, "                        Requi                             ");
+            ReLogger.Msg(ConsoleColor.Cyan, "                       Stellar                            ");
+            ReLogger.Msg(ConsoleColor.Cyan, "                     EvilEye Team                         ");
+            ReLogger.Msg(ConsoleColor.Cyan, "                        teddy                             ");
+            ReLogger.Msg(ConsoleColor.Cyan, "                        bruce                             ");
             ReLogger.Msg("------------------------------------------------------------");
         }
 

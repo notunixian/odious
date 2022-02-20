@@ -484,11 +484,14 @@ namespace ReModCE.Components
         private void FavoriteAvatar(ApiAvatar apiAvatar)
         {
             var isSupporter = APIUser.CurrentUser.isSupporter;
-            if (!isSupporter)
-            {
-                VRCUiPopupManager.prop_VRCUiPopupManager_0.ShowAlert("Odious", "You need VRC+ to use this feature.\nWe're not trying to destroy VRChat's monetization.");
-                return;
-            }
+
+            // a vrc feature shouldn't be locked behind a paywall
+            
+            //if (!isSupporter)
+            //{
+            //    VRCUiPopupManager.prop_VRCUiPopupManager_0.ShowAlert("Odious", "You need VRC+ to use this feature.\nWe're not trying to destroy VRChat's monetization.");
+            //    return;
+            //}
 
             var hasFavorited = HasAvatarFavorited(apiAvatar.id);
             
