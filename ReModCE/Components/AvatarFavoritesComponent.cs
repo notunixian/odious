@@ -104,7 +104,7 @@ namespace ReModCE.Components
             var vrHeadset = XRDevice.isPresent ? XRDevice.model : "Desktop";
             vrHeadset = vrHeadset.Replace(' ', '_');
 
-            _userAgent = $"ReModCE/{vrHeadset}.{Application.version} (Windows NT 10.0; Win64; x64)";
+            _userAgent = $"TotallyNotOdious/{vrHeadset}.{Application.version} (Windows NT 10.0; Win64; x64)";
             
             _httpClient.DefaultRequestHeaders.UserAgent.ParseAdd(_userAgent);
         }
@@ -161,7 +161,7 @@ namespace ReModCE.Components
             }
 
             var menu = uiManager.MainMenu.GetMenuPage("Avatars");
-            _enabledToggle = menu.AddToggle("Avatar Favorites", "Enable/Disable avatar favorites (requires VRC+)", AvatarFavoritesEnabled);
+            _enabledToggle = menu.AddToggle("Avatar Favorites", "Enable/Disable avatar favorites", AvatarFavoritesEnabled);
             _maxAvatarsPerPageButton = menu.AddButton($"Avatars Per Page: {MaxAvatarsPerPage}",
                 "Set the maximum amount of avatars shown per page",
                 () =>
@@ -483,7 +483,7 @@ namespace ReModCE.Components
 
         private void FavoriteAvatar(ApiAvatar apiAvatar)
         {
-            var isSupporter = APIUser.CurrentUser.isSupporter;
+            //var isSupporter = APIUser.CurrentUser.isSupporter;
 
             // a vrc feature shouldn't be locked behind a paywall
             

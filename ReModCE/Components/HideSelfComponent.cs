@@ -40,14 +40,17 @@ namespace ReModCE.Components
 
             if (_HideSelfEnabled)
             {
+                ClearAssets();
                 AssetBundleDownloadManager.field_Private_Static_AssetBundleDownloadManager_0.gameObject.SetActive(false);
                 ClearAssets();
             }
 
             if (!_HideSelfEnabled)
             {
+                // ima do this twice since i'm too lazy to see h
                 ClearAssets();
                 AssetBundleDownloadManager.field_Private_Static_AssetBundleDownloadManager_0.gameObject.SetActive(true);
+                ClearAssets();
             }
         }
     }

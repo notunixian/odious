@@ -259,6 +259,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Components\CursorColorComponent.cs" />
     <Compile Include="Components\HideSelfComponent.cs" />
     <Compile Include="Components\NamePlatesComponent.cs" />
     <Compile Include="Core\NamePlates.cs" />

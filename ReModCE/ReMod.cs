@@ -255,6 +255,7 @@ namespace ReModCE
             visualPage.AddCategory("ESP/Highlights");
             visualPage.AddCategory("Wireframe");
             visualPage.AddCategory("Nametags");
+            visualPage.AddCategory("Cursor");
             
             _uiManager.MainMenu.AddMenuPage("Dynamic Bones", "Access your global dynamic bone settings", ResourceManager.GetSprite("remodce.bone"));
             _uiManager.MainMenu.AddMenuPage("Avatars", "Access avatar related settings", ResourceManager.GetSprite("remodce.hanger"));
