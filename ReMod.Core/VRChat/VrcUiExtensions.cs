@@ -28,21 +28,7 @@ namespace ReMod.Core.VRChat
             }
             instance.Method_Protected_Void_List_1_T_Int32_Boolean_VRCUiContentButton_0(avatarList, offset, endOfPickers, contentHeaderElement);
         }
-
-        private delegate void OnValueChangedDelegate(ToggleIcon toggleIcon, bool arg0);
-        private static OnValueChangedDelegate _onValueChanged;
-
-        public static void OnValueChanged(this ToggleIcon toggleIcon, bool arg0)
-        {
-            if (_onValueChanged == null)
-            {
-                _onValueChanged = (OnValueChangedDelegate)Delegate.CreateDelegate(typeof(OnValueChangedDelegate),
-                    typeof(ToggleIcon).GetMethods().FirstOrDefault(m => m.Name.StartsWith("Method_Private_Void_Boolean_PDM_") && XrefUtils.CheckMethod(m, "Toggled")));
-            }
-
-            _onValueChanged(toggleIcon, arg0);
-        }
-
+        
         public static void QueueHudMessage(this VRCUiManager uiManager, string notification, Color color, float duration = 5f,
             float delay = 0f)
         {
@@ -65,7 +51,7 @@ namespace ReMod.Core.VRChat
             if (_pushPage == null)
             {
                 _pushPage = (PushPageDelegate)Delegate.CreateDelegate(typeof(PushPageDelegate),
-                    typeof(MenuStateController).GetMethods().FirstOrDefault(m => m.Name.StartsWith("Method_Public_Void_String_UIContext_Boolean_") && XrefUtils.CheckMethod(m, "No page named")));
+                    typeof(MenuStateController).GetMethods().FirstOrDefault(m => m.GetParameters().Length == 3 && m.Name.StartsWith("Method_Public_Void_String_UIContext_Boolean_") && XrefUtils.CheckMethod(m, "No page named")));
             }
 
             _pushPage(menuStateCtrl, pageName, uiContext, clearPageStack);
@@ -126,6 +112,14 @@ namespace ReMod.Core.VRChat
             ShowScreen(uiManager, BigMenuIndexToPathTable[menuIndex], addToScreenStack);
         }
 
+        public static Transform GetScreen(this VRCUiManager uiManager, QuickMenu.MainMenuScreenIndex menuIndex)
+        {
+            if (!BigMenuIndexToPathTable.ContainsKey(menuIndex))
+                return null;
+
+            return uiManager.MenuContent().transform.Find($"Screens/{BigMenuIndexToNameTable[menuIndex]}");
+        }
+
         private static readonly Dictionary<QuickMenu.MainMenuScreenIndex, string> BigMenuIndexToPathTable = new Dictionary<QuickMenu.MainMenuScreenIndex, string>()
         {
             { QuickMenu.MainMenuScreenIndex.Unknown, "" },
@@ -140,6 +134,23 @@ namespace ReMod.Core.VRChat
             { QuickMenu.MainMenuScreenIndex.OtherUserPlaylistsMenu, "UserInterface/MenuContent/Screens/Playlists" },
             { QuickMenu.MainMenuScreenIndex.VRCPlusMenu, "UserInterface/MenuContent/Screens/VRC+" },
             { QuickMenu.MainMenuScreenIndex.GalleryMenu, "UserInterface/MenuContent/Screens/Gallery" },
+        };
+
+
+        private static readonly Dictionary<QuickMenu.MainMenuScreenIndex, string> BigMenuIndexToNameTable = new Dictionary<QuickMenu.MainMenuScreenIndex, string>()
+        {
+            { QuickMenu.MainMenuScreenIndex.Unknown, "" },
+            { QuickMenu.MainMenuScreenIndex.WorldsMenu, "WorldInfo" },
+            { QuickMenu.MainMenuScreenIndex.AvatarMenu, "Avatar" },
+            { QuickMenu.MainMenuScreenIndex.SocialMenu, "Social" },
+            { QuickMenu.MainMenuScreenIndex.SettingsMenu, "Settings" },
+            { QuickMenu.MainMenuScreenIndex.UserDetailsMenu, "UserInfo" },
+            { QuickMenu.MainMenuScreenIndex.DetailsMenu_Obsolete, "ImageDetails" },
+            { QuickMenu.MainMenuScreenIndex.SafetyMenu, "Settings_Safety" },
+            { QuickMenu.MainMenuScreenIndex.CurrentUserPlaylistsMenu, "Playlists" },
+            { QuickMenu.MainMenuScreenIndex.OtherUserPlaylistsMenu, "Playlists" },
+            { QuickMenu.MainMenuScreenIndex.VRCPlusMenu, "VRC+" },
+            { QuickMenu.MainMenuScreenIndex.GalleryMenu, "Gallery" },
         };
     }
 }

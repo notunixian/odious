@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 using HarmonyLib;
 using MelonLoader;
@@ -31,7 +32,6 @@ namespace ReModCE
     public class ReModCE
     {
         private static readonly List<ModComponent> Components = new List<ModComponent>();
-        public static ReModCE Instance;
         private static UiManager _uiManager;
         private static ConfigManager _configManager;
 
@@ -42,18 +42,17 @@ namespace ReModCE
         public static bool IsVoidLoaded { get; private set; }
         public static bool IsAbyssLoaded { get; private set; }
         public static bool IsOculus { get; private set; }
+        public string ID { get; set; }
+        public MethodBase TargetMethod { get; set; }
+        public HarmonyMethod Prefix { get; set; }
+        public HarmonyMethod Postfix { get; set; }
 
-        // evileye shit
-        public List<OnPlayerJoinEvent> onPlayerJoinEvents = new List<OnPlayerJoinEvent>();
-        public List<OnWorldInitEvent> onWorldInitEvents = new List<OnWorldInitEvent>();
-        public List<OnAssetBundleLoadEvent> OnAssetBundleLoadEvents { get; set; }
+        private static DiscordRPC.EventHandlers handlers;
+        private static DiscordRPC.RichPresence presence;
 
-        public OnWorldInitEvent[] onWorldInitEventArray = new OnWorldInitEvent[0];
-        public OnPlayerJoinEvent[] onPlayerJoinEventArray = new OnPlayerJoinEvent[0];
-        public OnAssetBundleLoadEvent[] OnAssetBundleLoadEventArray { get; set; }
         private unsafe delegate IntPtr AttemptAvatarDownloadDelegate(IntPtr hiddenValueTypeReturn, IntPtr thisPtr, IntPtr apiAvatarPtr, IntPtr multicastDelegatePtr, bool idfk, IntPtr nativeMethodInfo);
         private static AttemptAvatarDownloadDelegate dgAttemptAvatarDownload;
-
+        private static MelonPreferences_Entry<bool> _LogAvi;
         public static HarmonyLib.Harmony Harmony { get; private set; }
 
         public static void OnApplicationStart()
@@ -61,6 +60,10 @@ namespace ReModCE
             Harmony = MelonHandler.Mods.First(m => m.Info.Name == "Odious").HarmonyInstance;
             Directory.CreateDirectory("UserData/Odious");
             ReLogger.Msg("Initializing...");
+            var category = MelonPreferences.GetCategory("ReModCE");
+            _LogAvi = category.CreateEntry("LogAvi", false, "Excessive Avatar Logging",
+                "When enabled, will excessively log avatars. Useful for identifying crashers or yoinking avatars from people.",
+                true);
 
             // static definitions (sorta) if mods are loaded or not, this can easily be broken by the mod author but ¯\_(ツ)_/¯
             IsEmmVRCLoaded = MelonHandler.Mods.Any(m => m.Info.Name == "emmVRCLoader");
@@ -68,11 +71,6 @@ namespace ReModCE
             IsNocturnalLoaded = MelonHandler.Mods.Any(m => m.Info.Name == "Nocturnal-V2");
             IsVoidLoaded = File.Exists("glu32.dll");
             IsAbyssLoaded = MelonHandler.Mods.Any(m => m.Info.Name == "AbyssLoader");
-
-            if (IsNocturnalLoaded)
-            {
-                ReLogger.Msg("Nocturnal detected! Disabling news interactions...");
-            }
 
             var ourAssembly = Assembly.GetExecutingAssembly();
             var resources = ourAssembly.GetManifestResourceNames();
@@ -101,6 +99,24 @@ namespace ReModCE
 
             InitializePatches();
             InitializeModComponents();
+
+            //handlers = default(DiscordRPC.EventHandlers);
+            //DiscordRPC.Initialize("946967250378842112", ref handlers, true, null);
+            //presence.details = "Using Odious for VRChat";
+
+            //presence.state += "odious.cf";
+            //presence.largeImageKey = "image_large";
+            //presence.largeImageText = "Odious";
+            //presence.startTimestamp = (long)DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1)).TotalSeconds;
+            //presence.partyId = "ae488379-351d-4a4f-ad32-2b9b01c91657";
+            //presence.partySize = 1;
+            //presence.partyMax = 69420;
+            //presence.joinSecret = "MTI4NzM0OjFpMmhuZToxMjMxMjM=";
+            //System.Timers.Timer timer = new System.Timers.Timer(15000.0);
+            //timer.AutoReset = true;
+            //timer.Enabled = true;
+            //DiscordRPC.UpdatePresence(ref presence);
+
             ReLogger.Msg("Done!");
             ReLogger.Msg("------------------------------------------------------------");
             ReLogger.Msg(ConsoleColor.DarkMagenta, "                     d8b   d8,                            ");
@@ -151,69 +167,53 @@ namespace ReModCE
             try
             {
                 Harmony.Patch(typeof(VRCPlayer).GetMethod(nameof(VRCPlayer.Awake)), GetLocalPatch(nameof(VRCPlayerAwakePatch)));
-                MelonLogger.Msg(ConsoleColor.Green, $"Succesfully patched VRCPlayerAwake!");
+                ReLogger.Msg(ConsoleColor.Green, $"Succesfully patched VRCPlayerAwake!");
             }
             catch (Exception e)
             {
-                MelonLogger.Error($"Unable to patch VRCPlayerAwake!\n Exception (please send this to unixian: \n{e}");
+                ReLogger.Error($"Unable to patch VRCPlayerAwake!\n Exception (please send this to unixian: \n{e}");
             }
 
             try
             {
                 Harmony.Patch(typeof(RoomManager).GetMethod(nameof(RoomManager.Method_Public_Static_Boolean_ApiWorld_ApiWorldInstance_String_Int32_0)), postfix: GetLocalPatch(nameof(EnterWorldPatch)));
-                MelonLogger.Msg(ConsoleColor.Green, $"Successfully patched EnterWorld!");
+                ReLogger.Msg(ConsoleColor.Green, $"Successfully patched EnterWorld!");
             }
             catch (Exception e)
             {
-                MelonLogger.Error($"Unable to patch EnterWorld!\n Exception (please send this to unixian): \n{e}");
+                ReLogger.Error($"Unable to patch EnterWorld!\n Exception (please send this to unixian): \n{e}");
             }
 
+            // hook from bundlebouncer
+            try
+            {
+                unsafe
+                {
+                    var originalMethodPointer = *(IntPtr*)(IntPtr)UnhollowerUtils
+                        .GetIl2CppMethodInfoPointerFieldForGeneratedMethod(typeof(AssetBundleDownloadManager).GetMethod(
+                            nameof(AssetBundleDownloadManager.Method_Internal_UniTask_1_InterfacePublicAbstractIDisposableGaObGaUnique_ApiAvatar_MulticastDelegateNInternalSealedVoUnUnique_Boolean_0)))
+                        .GetValue(null);
 
-            // patches commented out here because they are experimental/cause errors and i'm not focusing on this rn
+                    MelonUtils.NativeHookAttach((IntPtr)(&originalMethodPointer), typeof(ReModCE).GetMethod(nameof(OnAttemptAvatarDownload), BindingFlags.Static | BindingFlags.NonPublic).MethodHandle.GetFunctionPointer());
 
+                    dgAttemptAvatarDownload = Marshal.GetDelegateForFunctionPointer<AttemptAvatarDownloadDelegate>(originalMethodPointer);
+                    ReLogger.Msg(ConsoleColor.Green, $"Successfully able to hook AssetBundleDownLoadManager for logging.");
+                }
+            }
+            catch (Exception e)
+            {
+                ReLogger.Error($"Unable to hook AssetBundleDownloadManager for logging!\n Exception (please send this to unixian): \n{e}");
+            }
 
-            //try
-            //{
-            //    Harmony.Patch(typeof(AssetBundleDownloadManager).GetMethod("Method_Public_Static_Object_Object_Boolean_Boolean_Boolean_0"), GetLocalPatch(nameof(OnAvatarAssetBundleLoad)));
-            //    MelonLogger.Msg(ConsoleColor.Green, $"Successfully patched AssetBundle!");
-            //}
-            //catch (Exception e)
-            //{
-            //    MelonLogger.Error($"Unable to patch AssetBundle!\n Exception (please send this to unixian): \n{e}");
-            //}
-
-            // i stole this from munchen
-
-            //try
-            //{
-            //    Harmony.Patch(typeof(QuickMenu).GetMethods().First(mb => mb.Name.StartsWith("Method_Public_Void_Boolean_") && mb.Name.Length <= 29 && mb.Name.Contains("PDM") == false && XrefUtils.CheckUsing(mb, "Method_Public_Static_Boolean_byref_Boolean_0", typeof(VRCInputManager)) == true), null, GetLocalPatch(nameof(QuickMenuOpenPatch)));
-            //    MelonLogger.Msg(ConsoleColor.Green, $"Successfully patched QuickMenu!");
-            //}
-            //catch (Exception e)
-            //{
-            //    MelonLogger.Error($"Unable to patch QuickMenu!\n Exception (please send this to unixian): \n{e}");
-            //}
-
-            //// thanks bundlebouncer
-            //try
-            //{
-            //    unsafe
-            //    {
-            //        var originalMethodPointer = *(IntPtr*)(IntPtr)UnhollowerUtils
-            //            .GetIl2CppMethodInfoPointerFieldForGeneratedMethod(typeof(AssetBundleDownloadManager).GetMethod(
-            //                nameof(AssetBundleDownloadManager.Method_Internal_UniTask_1_InterfacePublicAbstractIDisposableGaObGaUnique_ApiAvatar_MulticastDelegateNInternalSealedVoUnUnique_Boolean_0)))
-            //            .GetValue(null);
-
-            //        MelonUtils.NativeHookAttach((IntPtr)(&originalMethodPointer), typeof(Patches).GetMethod(nameof(ReModCE.OnAttemptAvatarDownload), BindingFlags.Static | BindingFlags.NonPublic).MethodHandle.GetFunctionPointer());
-
-            //        dgAttemptAvatarDownload = Marshal.GetDelegateForFunctionPointer<AttemptAvatarDownloadDelegate>(originalMethodPointer);
-            //        MelonLogger.Msg(ConsoleColor.Green, $"Successfully patched AssetBundle!");
-            //    }
-            //}
-            //catch(Exception e)
-            //{
-            //    MelonLogger.Error($"Unable to patch AssetBundle!\n Exception (please send this to unixian): \n{e}");
-            //}
+            try
+            {
+                Harmony.Patch(typeof(AssetBundleDownload).GetMethod(nameof(AssetBundleDownload.Method_Private_Static_String_String_String_Int32_String_String_String_0)), GetLocalPatch(nameof(OnCreateAssetBundleDownload)));
+                ReLogger.Msg(ConsoleColor.Green, $"Successfully able to patch AssetBundleDownload for logging.");
+            }
+            catch (Exception e)
+            {
+                ReLogger.Error($"Unable to patch AssetBundleDownload for logging!\n Exception (please send this to unixian): \n{e}");
+            }
 
             foreach (var method in typeof(SelectedUserMenuQM).GetMethods())
             {
@@ -496,15 +496,37 @@ namespace ReModCE
             }
         }
 
-
-        // from bundlebouncer
         static unsafe IntPtr OnAttemptAvatarDownload(IntPtr hiddenStructReturn, IntPtr thisPtr, IntPtr pApiAvatar, IntPtr pMulticastDelegate, bool param_3, IntPtr nativeMethodInfo)
         {
-            using (var ctx = new AttemptAvatarDownloadContext(pApiAvatar == IntPtr.Zero ? null : new ApiAvatar(pApiAvatar)))
+            try
             {
-                var av = AttemptAvatarDownloadContext.apiAvatar;
-                MelonLogger.Msg($"Attempting to download avatar {av.id} ({av.name}) via AssetBundleDownloadManager...");
+                using (var ctx = new AttemptAvatarDownloadContext(pApiAvatar == IntPtr.Zero ? null : new ApiAvatar(pApiAvatar)))
+                {
+                    var av = AttemptAvatarDownloadContext.apiAvatar;
 
+                    if (_LogAvi.Value == false)
+                    {
+                        // crasher avi id
+                        if (av.id == "avtr_da56b2e0-134e-465f-813d-707d284ab159")
+                        {
+                            av.assetUrl = null; // this should just make it an error robot
+                        }
+                        return dgAttemptAvatarDownload(hiddenStructReturn, thisPtr, pApiAvatar, pMulticastDelegate, param_3, nativeMethodInfo);
+                    }
+                    ReLogger.Msg($"Attempting to download avatar... {av.id} ({av.name}) by {av.authorName}");
+
+                    // same thing here
+                    if (av.id == "avtr_da56b2e0-134e-465f-813d-707d284ab159")
+                    {
+                        av.assetUrl = null;
+                    }
+
+                    return dgAttemptAvatarDownload(hiddenStructReturn, thisPtr, pApiAvatar, pMulticastDelegate, param_3, nativeMethodInfo);
+                }
+            }
+            catch (Exception e)
+            {
+                ReLogger.Error($"avatar download threw an exception? {e}");
                 return dgAttemptAvatarDownload(hiddenStructReturn, thisPtr, pApiAvatar, pMulticastDelegate, param_3, nativeMethodInfo);
             }
         }
@@ -528,6 +550,29 @@ namespace ReModCE
         {
             // this will be used for some stuff later
             bool isQuickMenuOpen = true;
+        }
+
+        
+        // also from bundle bouncer
+        private static bool OnCreateAssetBundleDownload(string __0, string __1, int __2, string __3, string __4, string __5, ref string __result)
+        {
+            if(_LogAvi.Value == false)
+            {
+                return true;
+            }
+
+            string asseturl = __0;
+            string id = __1;
+            string category = __4;
+            string ext = __5;
+
+            // do this explicit check since this also has the chance to log world downloading, which isn't really useful.
+            if (ext == "vrca" || category == "Avatars")
+            {
+                ReLogger.Msg($"\nAttempting to load VRCA!\nDetails: \nAsset URL: {asseturl} \nAvatar ID: {id}");
+            }
+
+            return true;
         }
     }
 }

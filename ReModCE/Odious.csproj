@@ -80,6 +80,7 @@
     <Reference Include="ReMod.Core, Version=1.0.0.0, Culture=neutral, processorArchitecture=AMD64">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\.build\Release (x64)\Modules\ReMod.Core.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -191,6 +192,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>D:\SteamLibrary\steamapps\common\VRChat\MelonLoader\Managed\UnityEngine.UIModule.dll</HintPath>
     </Reference>
+    <Reference Include="UnityEngine.UnityWebRequestAssetBundleModule">
+      <HintPath>D:\SteamLibrary\steamapps\common\VRChat\MelonLoader\Managed\UnityEngine.UnityWebRequestAssetBundleModule.dll</HintPath>
+    </Reference>
     <Reference Include="UnityEngine.UnityWebRequestModule">
       <HintPath>D:\SteamLibrary\steamapps\common\VRChat\MelonLoader\Managed\UnityEngine.UnityWebRequestModule.dll</HintPath>
     </Reference>
@@ -262,6 +266,7 @@
     <Compile Include="Components\CursorColorComponent.cs" />
     <Compile Include="Components\HideSelfComponent.cs" />
     <Compile Include="Components\NamePlatesComponent.cs" />
+    <Compile Include="Core\DiscordRPC.cs" />
     <Compile Include="Core\NamePlates.cs" />
     <Compile Include="EvilEyeSDK\OnAssetBundleLoadEvent.cs" />
     <Compile Include="EvilEyeSDK\OnPlayerJoinEvent.cs" />
@@ -292,12 +297,12 @@
     <Compile Include="Core\DynamicContractResolver.cs" />
     <Compile Include="Core\ReAvatar.cs" />
     <Compile Include="Core\TaskExtensions.cs" />
-    <Compile Include="EvilEyeSDK\WorldWrapper.cs" />
     <Compile Include="Exploits\Event1-USpeak.cs" />
     <Compile Include="Exploits\Event1-USpeak2.cs" />
     <Compile Include="Exploits\Event9.cs" />
     <Compile Include="Exploits\ItemLagger.cs" />
     <Compile Include="Exploits\PCAviCrash.cs" />
+    <Compile Include="Exploits\QuestAviCrash.cs" />
     <Compile Include="Exploits\Udon.cs" />
     <Compile Include="Managers\RiskyFunctionsManager.cs" />
     <Compile Include="Photon\PhotonExtensions.cs" />
@@ -349,6 +354,11 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\remod.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\.editorconfig">
+      <Link>.editorconfig</Link>
+    </None>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using ReMod.Core.Unity;
 using ReMod.Core.VRChat;
 using TMPro;
 using UnityEngine;
@@ -95,6 +96,9 @@ namespace ReMod.Core.UI.QuickMenu
                 rootPages.Add(UiPage);
                 QuickMenuEx.MenuStateCtrl.field_Public_ArrayOf_UIPage_0 = rootPages.ToArray();
             }
+
+            EnableDisableListener.RegisterSafe();
+            GameObject.AddComponent<EnableDisableListener>().OnEnableEvent += () => OnOpen?.Invoke();
         }
 
         public ReCategoryPage(Transform transform) : base(transform)

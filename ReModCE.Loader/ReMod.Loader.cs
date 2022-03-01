@@ -36,6 +36,7 @@ namespace ReModCE.Loader
     public class ReLoader : MelonMod
     {
         public static bool IsARESLoaded { get; private set; }
+        public static bool UnableToRead;
         private Action _onApplicationStart;
         private Action _onUiManagerInit;
         private Action _onUiManagerInitEarly;
@@ -53,13 +54,6 @@ namespace ReModCE.Loader
         private MelonPreferences_Entry<bool> _paranoidMode;
         public override void OnApplicationStart()
         {
-            IsARESLoaded = MelonHandler.Plugins.Any(m => m.Info.Name == "ARES Manager");
-
-            if (IsARESLoaded)
-            {
-                MelonLogger.Warning($"ARES has been detected! Odious will now attempt to bypass ARES preventing Odious from accessing ReMod Core!");
-            }
-
             var category = MelonPreferences.CreateCategory("ReModCE");
             _paranoidMode = category.CreateEntry("ParanoidMode", false, "Paranoid Mode",
                 "If enabled ReModCE will not automatically download the latest version from GitHub. Manual update will be required.",
@@ -207,13 +201,14 @@ namespace ReModCE.Loader
             using var sha256 = SHA256.Create();
 
             byte[] bytes = null;
-            if (IsARESLoaded && File.Exists($"{fileName}.ARES.dll"))
-            {
-                bytes = File.ReadAllBytes($"{fileName}.ARES.dll");
-            }
-            if (!IsARESLoaded && File.Exists($"{fileName}.dll"))
+            if (File.Exists($"{fileName}.dll"))
             {
                 bytes = File.ReadAllBytes($"{fileName}.dll");
+            }
+
+            if (!File.Exists($"{fileName}.dll") && File.Exists($"{fileName}.odious"))
+            {
+                bytes = File.ReadAllBytes($"{fileName}.odious");
             }
                 
             using var wc = new WebClient
@@ -235,7 +230,7 @@ namespace ReModCE.Loader
                 MelonLogger.Error($"Unable to download latest version of Odious: {e}");
             }
 
-            if (!IsARESLoaded && bytes == null)
+            if (bytes == null)
             {
                 if (latestBytes == null)
                 {
@@ -247,18 +242,6 @@ namespace ReModCE.Loader
                 bytes = latestBytes;
                 File.WriteAllBytes($"{fileName}.dll", bytes);
             }
-            if(IsARESLoaded && bytes == null)
-            {
-                if (latestBytes == null)
-                {
-                    MelonLogger.Error($"No local file exists and unable to download latest version from GitHub. {fileName} will not load!");
-                    loadedAssembly = null;
-                    return;
-                }
-                MelonLogger.Warning($"Redownloading and Saving to prevent ARES incompatibility");
-                bytes = latestBytes;
-                File.WriteAllBytes($"{fileName}.ARES.dll", bytes);
-            }
 
 #if !DEBUG
             if (latestBytes != null)
@@ -266,7 +249,7 @@ namespace ReModCE.Loader
                 var latestHash = ComputeHash(sha256, latestBytes);
                 var currentHash = ComputeHash(sha256, bytes);
 
-                if (!IsARESLoaded && latestHash != currentHash)
+                try
                 {
                     if (_paranoidMode.Value)
                     {
@@ -280,7 +263,7 @@ namespace ReModCE.Loader
                         MelonLogger.Msg(ConsoleColor.Green, $"Updated {fileName} to latest version.");
                     }
                 }
-                if (IsARESLoaded && latestHash != currentHash)
+                catch
                 {
                     if (_paranoidMode.Value)
                     {
@@ -290,7 +273,8 @@ namespace ReModCE.Loader
                     else
                     {
                         bytes = latestBytes;
-                        File.WriteAllBytes($"{fileName}.ARES.dll", bytes);
+                        MelonLogger.Warning($"Preventing incompatibility due to being unable to read {fileName}!");
+                        File.WriteAllBytes($"{fileName}.odious", bytes);
                         MelonLogger.Msg(ConsoleColor.Green, $"Updated {fileName} to latest version.");
                     }
                 }

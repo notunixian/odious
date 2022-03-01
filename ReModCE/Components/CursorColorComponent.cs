@@ -14,6 +14,7 @@ using UnityEngine.UI;
 
 namespace ReModCE.Components
 {
+	// i orignally lost the code for this while doing this so i had to decompile it to get it back, sorry for the messy code below
     internal class CursorColorComponent : ModComponent
     {
 		public ConfigValue<bool> _CursorColorEnabled;
@@ -67,16 +68,16 @@ namespace ReModCE.Components
 			if (value)
 			{
 				GameObject gameObject = GameObject.Find("_Application/CursorManager/MouseArrow/VRCUICursorIcon");
-				MelonLogger.Log(gameObject.GetComponent<SpriteRenderer>().color.ToString());
+				//MelonLogger.Log(gameObject.GetComponent<SpriteRenderer>().color.ToString());
 				gameObject.GetComponent<SpriteRenderer>().color = this.CursorColor;
 			}
 			if (!value)
 			{
 				GameObject Cursor = GameObject.Find("_Application/CursorManager/MouseArrow/VRCUICursorIcon");
-				MelonLogger.Msg("[PerformColorCursor] cursor being reset!");
-				MelonLogger.Log("[PerformColorCursor] Color before: " + Cursor.GetComponent<SpriteRenderer>().color.ToString());
+				//MelonLogger.Msg("[PerformColorCursor] cursor being reset!");
+				//MelonLogger.Log("[PerformColorCursor] Color before: " + Cursor.GetComponent<SpriteRenderer>().color.ToString());
 				Cursor.GetComponent<SpriteRenderer>().color = new Color(0f, 0.848f, 1f, 1f);
-				MelonLogger.Log("[PerformColorCursor] Color after reset: " + Cursor.GetComponent<SpriteRenderer>().color.ToString());
+				//MelonLogger.Log("[PerformColorCursor] Color after reset: " + Cursor.GetComponent<SpriteRenderer>().color.ToString());
 			}
 		}
 
@@ -87,7 +88,7 @@ namespace ReModCE.Components
 				return;
 			}
 			GameObject gameObject = GameObject.Find("_Application/CursorManager/MouseArrow/VRCUICursorIcon");
-			MelonLogger.Msg("[OnPreferencesSaved] Setting color cursor since preferences have changed!");
+			//MelonLogger.Msg("[OnPreferencesSaved] Setting color cursor since preferences have changed!");
 			gameObject.GetComponent<SpriteRenderer>().color = this.CursorColor;
 		}
 	}
