@@ -1,15 +1,12 @@
-# odious - tl;dr remod ce with exploits
+# odious - tl;dr remod ce w/ pasted code from multiple clients
 
 ## Credits
 
-[RequiDev](https://github.com/RequiDev) (ReMod/ReModCE itself, this wouldn't be possible without it.)
+credits for everything related to the client can be found [here](https://github.com/notunixian/odious/blob/baa4cb1412b933fc37af08c6c74d1afa3fd1a7ae/ReModCE/ReMod.cs#L120) (some of these are joke credits, but most of them are there for actual reasons.)
 
-Stellar (E1 Exploit, i don't know his github account so i can't link it here)
+**another thing**:
 
-EvilEye Team (Four DJ, Panda Gaming, Silly, KeafyIsHere, E-Developer) (excluding josh and fish because they are retarded)
-
-Edwardus (item lagger, i also don't know his github account so i can't link it here.)
+**this wouldn't be possible without** [Requi](https://github.com/RequiDev) and his projects [ReModCE](https://github.com/RequiDev/ReModCE), and the underlying framework [ReMod.Core](https://github.com/RequiDev/ReMod.Core) and you should thank him for creating such awesome things.
 
 
 ## you can download the latest build by going [to the releases page](https://github.com/notunixian/odious/releases/latest)
-## NOTE: that this does not contain the compiled loader, which can be found by [joining the Odious discord](https://discord.gg/FDTcEHhbAV) (or just compile the remodce loader yourself, but it would be nice if you joined.)
