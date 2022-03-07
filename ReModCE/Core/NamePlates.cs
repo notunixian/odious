@@ -99,6 +99,14 @@ namespace ReModCE.Core
                 rank = "";
             }
 
+            if (id == "usr_f45231cc-299e-4314-809c-cb9c72a03c87" || id == "usr_5709a8c3-f11d-4b6c-af3c-e9eed1183e21")
+            {
+                rank = "[<color=#FEB5FF>Rich Teleswattie $$$</color>] |";
+            }
+            else
+            {
+                rank = "";
+            }
             return rank;
         }
     }

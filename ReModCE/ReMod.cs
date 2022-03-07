@@ -7,8 +7,13 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+using ExitGames.Client.Photon;
 using HarmonyLib;
+using Il2CppSystem.Threading;
 using MelonLoader;
+using Newtonsoft.Json;
+using Photon.Realtime;
 using ReMod.Core;
 using ReMod.Core.Managers;
 using ReMod.Core.UI.Wings;
@@ -17,6 +22,7 @@ using ReModCE.Components;
 using ReModCE.Core;
 using ReModCE.EvilEyeSDK;
 using ReModCE.Loader;
+using ReModCE.PhotonExtension;
 using UnhollowerBaseLib;
 using UnhollowerRuntimeLib;
 using UnhollowerRuntimeLib.XrefScans;
@@ -25,7 +31,16 @@ using VRC;
 using VRC.Core;
 using VRC.DataModel;
 using VRC.UI.Elements.Menus;
+using System.Timers;
 using ConfigManager = ReMod.Core.Managers.ConfigManager;
+using System.Collections;
+using System.Windows.Forms.VisualStyles;
+using Il2CppSystem.Runtime.Remoting.Messaging;
+using ReMod.Core.VRChat;
+using RootMotion.FinalIK;
+using Valve.VR;
+using Random = System.Random;
+using ThreadState = Il2CppSystem.Threading.ThreadState;
 
 namespace ReModCE
 {
@@ -46,6 +61,10 @@ namespace ReModCE
         public MethodBase TargetMethod { get; set; }
         public HarmonyMethod Prefix { get; set; }
         public HarmonyMethod Postfix { get; set; }
+        private static int e7SentCount = 0;
+        private static int e9SentCount = 0;
+        private static int e6SentCount = 0;
+        private static string MarkedAvatar = "";
 
         private static DiscordRPC.EventHandlers handlers;
         private static DiscordRPC.RichPresence presence;
@@ -53,6 +72,20 @@ namespace ReModCE
         private unsafe delegate IntPtr AttemptAvatarDownloadDelegate(IntPtr hiddenValueTypeReturn, IntPtr thisPtr, IntPtr apiAvatarPtr, IntPtr multicastDelegatePtr, bool idfk, IntPtr nativeMethodInfo);
         private static AttemptAvatarDownloadDelegate dgAttemptAvatarDownload;
         private static MelonPreferences_Entry<bool> _LogAvi;
+        private static MelonPreferences_Entry<bool> _PhotonProtection;
+        private static MelonPreferences_Entry<bool> _AvatarProtection;
+        private static MelonPreferences_Entry<bool> _WorldSpoof;
+        private static MelonPreferences_Entry<string> _WorldIdToSpoof;
+        private static MelonPreferences_Entry<string> _InstanceIdToSpoof;
+        private static MelonPreferences_Entry<bool> _WorldSpoofWarn;
+        public static HashSet<byte> writtenPhotonSamples = new HashSet<byte>();
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate IntPtr ObjectInstantiateDelegate(IntPtr assetPtr, Vector3 pos, Quaternion rot, byte allowCustomShaders, byte isUI, byte validate, IntPtr nativeMethodPointer);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate void VoidDelegate(IntPtr thisPtr, IntPtr nativeMethodInfo);
+
+        private static readonly Dictionary<IntPtr, string> previouslyWhitelisted = new Dictionary<IntPtr, string>();
         public static HarmonyLib.Harmony Harmony { get; private set; }
 
         public static void OnApplicationStart()
@@ -60,10 +93,6 @@ namespace ReModCE
             Harmony = MelonHandler.Mods.First(m => m.Info.Name == "Odious").HarmonyInstance;
             Directory.CreateDirectory("UserData/Odious");
             ReLogger.Msg("Initializing...");
-            var category = MelonPreferences.GetCategory("ReModCE");
-            _LogAvi = category.CreateEntry("LogAvi", false, "Excessive Avatar Logging",
-                "When enabled, will excessively log avatars. Useful for identifying crashers or yoinking avatars from people.",
-                true);
 
             // static definitions (sorta) if mods are loaded or not, this can easily be broken by the mod author but ¯\_(ツ)_/¯
             IsEmmVRCLoaded = MelonHandler.Mods.Any(m => m.Info.Name == "emmVRCLoader");
@@ -86,7 +115,7 @@ namespace ReModCE
                 var resourceName = Regex.Match(resource, @"([a-zA-Z\d\-_]+)\.png").Groups[1].ToString();
                 ResourceManager.LoadSprite("remodce", resourceName, ms.ToArray());
             }
-            
+
             _configManager = new ConfigManager(nameof(ReModCE));
 
             EnableDisableListener.RegisterSafe();
@@ -99,6 +128,7 @@ namespace ReModCE
 
             InitializePatches();
             InitializeModComponents();
+            InitializeMelonPrefs();
 
             //handlers = default(DiscordRPC.EventHandlers);
             //DiscordRPC.Initialize("946967250378842112", ref handlers, true, null);
@@ -215,6 +245,40 @@ namespace ReModCE
                 ReLogger.Error($"Unable to patch AssetBundleDownload for logging!\n Exception (please send this to unixian): \n{e}");
             }
 
+            try
+            {
+                Harmony.Patch(typeof(LoadBalancingClient).GetMethod(nameof(LoadBalancingClient.OnEvent)), GetLocalPatch(nameof(OnEvent)));
+                ReLogger.Msg(ConsoleColor.Green, $"Successfully able to patch OnEvent for Photon Anti-Crash.");
+            }
+            catch (Exception e)
+            {
+                ReLogger.Error($"Unable to patch OnEvent! Photon Anti-Crash will not work!\n Exception (please send this to unixian): \n{e}");
+            }
+
+            try
+            {
+                Harmony.Patch((from Method in typeof(IKSolverHeuristic).GetMethods()
+                    where Method.Name.Equals("IsValid") && Method.GetParameters().Length == 1
+                    select Method).First(), new HarmonyMethod(typeof(ReModCE), "FinalIKPatch"));
+                Harmony.Patch(typeof(IKSolverAim).GetMethod(nameof(IKSolverAim.GetClampedIKPosition)), GetLocalPatch(nameof(IKSolverAimPatch)));
+                ReLogger.Msg(ConsoleColor.Green, $"Successfully able to patch IK to prevent IK-based avatar crashers.");
+            }
+            catch (Exception e)
+            {
+                ReLogger.Error($"Unable to patch FinalIK! You will not be protected against IK-based crashers!\n Exception (please send this to unixian): \n{e}");
+                throw;
+            }
+
+            try
+            {
+                Harmony.Patch(typeof(API).GetMethod(nameof(API.SendPutRequest)), new HarmonyMethod(typeof(ReModCE), "PutRequestPatch"));
+                ReLogger.Msg(ConsoleColor.Green, $"Successfully able to patch SendPutRequest for world spoofing.");
+            }
+            catch (Exception e)
+            {
+                ReLogger.Error($"Unable to patch SendPutRequest! World spoofing will not work!\n Exception (please send this to unixian): \n{e}");
+            }
+
             foreach (var method in typeof(SelectedUserMenuQM).GetMethods())
             {
                 if (!method.Name.StartsWith("Method_Private_Void_IUser_PDM_"))
@@ -231,15 +295,41 @@ namespace ReModCE
         {
             var playerJoinedDelegate = NetworkManager.field_Internal_Static_NetworkManager_0.field_Internal_VRCEventDelegate_1_Player_0;
             var playerLeftDelegate = NetworkManager.field_Internal_Static_NetworkManager_0.field_Internal_VRCEventDelegate_1_Player_1;
-            playerJoinedDelegate.field_Private_HashSet_1_UnityAction_1_T_0.Add(new Action<Player>(p =>
+            playerJoinedDelegate.field_Private_HashSet_1_UnityAction_1_T_0.Add(new Action<VRC.Player>(p =>
             {
                 if (p != null) OnPlayerJoined(p);
             }));
 
-            playerLeftDelegate.field_Private_HashSet_1_UnityAction_1_T_0.Add(new Action<Player>(p =>
+            playerLeftDelegate.field_Private_HashSet_1_UnityAction_1_T_0.Add(new Action<VRC.Player>(p =>
             {
                 if (p != null) OnPlayerLeft(p);
             }));
+        }
+
+        private static void InitializeMelonPrefs()
+        {
+            var category = MelonPreferences.GetCategory("ReModCE");
+            _LogAvi = category.CreateEntry("LogAvi", false, "Excessive Avatar Logging",
+                "When enabled, will excessively log avatars. Useful for identifying crashers or yoinking avatars from people.",
+                true);
+            _PhotonProtection = category.CreateEntry("PhotonProtection", true, "Photon Event Protections",
+                "When enabled, will try to prevent malicious Photon exploits from affecting you. (freezing/crashing you.)",
+                true);
+            _AvatarProtection = category.CreateEntry("AvatarProtection", true, "Avatar Protections",
+                "When enabled, will try to prevent malicious avatars from crashing you.",
+                true);
+            _WorldSpoof = category.CreateEntry("WorldSpoof", true, "World Spoofing",
+                "When enabled, will spoof the world to a selected World ID (by default, VRChat Home World with instance id 1337.) Configurable under WorldIdToSpoof and InstanceIdToSpoof.",
+                true);
+            _WorldIdToSpoof = category.CreateEntry("WorldIdToSpoof", "wrld_4432ea9b-729c-46e3-8eaf-846aa0a37fdd", "World Spoofing",
+                "World ID to spoof, WorldSpoof must be enabled for this to work.",
+                true);
+            _InstanceIdToSpoof = category.CreateEntry("InstanceIdToSpoof", "1337", "World Spoofing",
+                "Instance ID to spoof, WorldSpoof must be enabled for this to work.",
+                true);
+            _WorldSpoofWarn = category.CreateEntry("WorldSpoofWarn", true, "World Spoofing",
+                "Nags you about the world you are spoofing, just incase. WorldSpoof must be enabled for this to work.",
+                true);
         }
 
         public static void OnUiManagerInit()
@@ -250,19 +340,19 @@ namespace ReModCE
             WingMenu = ReMirroredWingMenu.Create("Odious", "Open the Odious menu", ResourceManager.GetSprite("remodce.remod"));
 
             _uiManager.MainMenu.AddMenuPage("Movement", "Access movement related settings", ResourceManager.GetSprite("remodce.running"));
-            
+
             var visualPage = _uiManager.MainMenu.AddCategoryPage("Visuals", "Access anything that will affect your game visually", ResourceManager.GetSprite("remodce.eye"));
             visualPage.AddCategory("ESP/Highlights");
             visualPage.AddCategory("Wireframe");
             visualPage.AddCategory("Nametags");
             visualPage.AddCategory("Cursor");
-            
+
             _uiManager.MainMenu.AddMenuPage("Dynamic Bones", "Access your global dynamic bone settings", ResourceManager.GetSprite("remodce.bone"));
             _uiManager.MainMenu.AddMenuPage("Avatars", "Access avatar related settings", ResourceManager.GetSprite("remodce.hanger"));
-            
+
             var utilityPage = _uiManager.MainMenu.AddCategoryPage("Utility", "Access miscellaneous settings", ResourceManager.GetSprite("remodce.tools"));
             utilityPage.AddCategory("Quality of Life");
-            
+
             _uiManager.MainMenu.AddMenuPage("Logging", "Access logging related settings", ResourceManager.GetSprite("remodce.log"));
             _uiManager.MainMenu.AddMenuPage("Hotkeys", "Access hotkey related settings", ResourceManager.GetSprite("remodce.keyboard"));
 
@@ -272,8 +362,15 @@ namespace ReModCE
             exploitsPage.AddCategory("Udon");
             exploitsPage.AddCategory("Avatar");
 
-            // soon...
-            // var safetyPage = _uiManager.MainMenu.AddMenuPage("Safety", "Access protection/safety settings", ResourceManager.GetSprite("remodce.safety"));
+            var safetyPage = _uiManager.MainMenu.AddCategoryPage("Safety", "Access protection/safety settings", ResourceManager.GetSprite("remodce.safety"));
+            // TODO: make an actual good avatar anti-crash.
+            // safetyPage.AddCategory("Avatars");
+            safetyPage.AddCategory("Photon Events");
+
+            var spoofingPage = _uiManager.MainMenu.AddCategoryPage("Spoofing", "Access settings related to spoofing certain things", ResourceManager.GetSprite("remodce.spoofing"));
+            // TODO: add hwid spoofer
+            // spoofingPage.AddCategory("Hardware");
+            spoofingPage.AddCategory("Worlds");
 
             foreach (var m in Components)
             {
@@ -381,7 +478,7 @@ namespace ReModCE
             }
         }
 
-        private static void OnPlayerJoined(Player player)
+        private static void OnPlayerJoined(VRC.Player player)
         {
             foreach (var m in Components)
             {
@@ -389,7 +486,7 @@ namespace ReModCE
             }
         }
 
-        private static void OnPlayerLeft(Player player)
+        private static void OnPlayerLeft(VRC.Player player)
         {
             foreach (var m in Components)
             {
@@ -476,7 +573,7 @@ namespace ReModCE
         private static void VRCPlayerAwakePatch(VRCPlayer __instance)
         {
             if (__instance == null) return;
-            
+
             __instance.Method_Public_add_Void_OnAvatarIsReady_0(new Action(() =>
             {
                 foreach (var m in Components)
@@ -552,11 +649,11 @@ namespace ReModCE
             bool isQuickMenuOpen = true;
         }
 
-        
+
         // also from bundle bouncer
         private static bool OnCreateAssetBundleDownload(string __0, string __1, int __2, string __3, string __4, string __5, ref string __result)
         {
-            if(_LogAvi.Value == false)
+            if (_LogAvi.Value == false)
             {
                 return true;
             }
@@ -570,6 +667,189 @@ namespace ReModCE
             if (ext == "vrca" || category == "Avatars")
             {
                 ReLogger.Msg($"\nAttempting to load VRCA!\nDetails: \nAsset URL: {asseturl} \nAvatar ID: {id}");
+            }
+
+            return true;
+        }
+
+        // took this from bundle bouncer since it's useful
+        internal static string Params2JSON(ParameterDictionary paramDict)
+        {
+            var p = new Dictionary<byte, object>();
+            foreach (var kvp in paramDict)
+            {
+                p[kvp.Key] = PhotonExtension.Serialization.FromIL2CPPToManaged<object>(kvp.Value);
+            }
+            return JsonConvert.SerializeObject(p);
+        }
+
+        // you should use networksanity instead of this, just a little thing i was trying to do on my own and it kind of works? 
+        internal static bool OnEvent(EventData __0)
+        {
+            if (_PhotonProtection.Value == false)
+            {
+                return true;
+            }
+
+            // hey, person snooping though my pasted code.
+            // want to hear a little background info about me since i'm bored while trying to paste photon anti-crash?
+
+            // i used to do a lot of csgo cheating related things before i started doing stuff on vrchat, i've only been on this game for around 1-2 months.
+            // i've met a lot of nice people on here, and probably some of the most fun i've had in a while.
+            // so if you're one of the friends i've met over the past 1-2 months, thank you very much.
+            // enough rambling, more pasting.
+
+            try
+            {
+                int Sender = __0.sender;
+                var player = PlayerManager.field_Private_Static_PlayerManager_0.GetPlayer(Sender);
+                string SenderPlayer = player != null ? player.prop_APIUser_0.displayName : "VRC Server";
+
+                switch (__0.Code)
+                {
+
+                    case 9: // avatar sync reliable, also used for some triggers i think?
+                        // event 9 exploits were fixed (at least byte[8]) but 
+                        if (__0.CustomData.Cast<Il2CppArrayBase<byte>>().Length >= 150 ||
+                            __0.CustomData.Cast<Il2CppArrayBase<byte>>().Length <= 8)
+                        {
+                            // i know this is a bad way of doing this, but i really can't think of a different way of doing this.
+                            if (SenderPlayer != "VRC Server" && SenderPlayer == player.prop_APIUser_0.displayName && Sender != -1 && Sender != 0)
+                            {
+                                e9SentCount++;
+                            }
+                            else
+                            {
+                                e9SentCount = 0;
+                            }
+
+                            if (e9SentCount > 1500)
+                            {
+                                ReLogger.Msg($"[photon anti-crash] {SenderPlayer} sent invalid event 9 data, blocking. size: [{__0.CustomData.Cast<Il2CppArrayBase<byte>>().Length}]"); ;
+                                e9SentCount = 0;
+                            }
+
+                            return false;
+                        }
+
+                        break;
+
+                    // i hate doing if trees like this but i'm too lazy to do a proper way of doing this
+                    // also comparing event payloads like this is really bad, but i don't understand other ways of preventing these.
+                    case 6: // rpc event, it is required to send the encrypt flag while using this (i think)
+                        var payload = Params2JSON(__0.Parameters);
+
+                        // EnableMeshRPC, no idea where this gets used normally so ima just return this false
+                        if (payload.Contains("AEVuYWJsZU1lc2hSUEM"))
+                        {
+                            if (SenderPlayer != "VRC Server" && SenderPlayer == player.prop_APIUser_0.displayName && Sender != -1 && Sender != 0)
+                            {
+                                e6SentCount++;
+                            }
+                            else
+                            {
+                                e6SentCount = 0;
+                            }
+
+                            if (e6SentCount > 1500)
+                            {
+                                ReLogger.Msg($"[photon anti-crash] {SenderPlayer} sent invalid event 6 data, blocking.");
+                                e6SentCount = 0;
+                            }
+
+                            return false;
+                        }
+
+                        // small chunk of an event 6 exploit that uses SanityCheck RPC, should only trigger if the exploit is being sent.
+                        if (payload.Contains("wA6Mi8OAP8AAAAACQAAAAsAU2FuaXR5Q2hlY2sAAAAABBAAAgoDAAsAAAULAAAJBQIAAAA"))
+                        {
+                            if (SenderPlayer != "VRC Server" && SenderPlayer == player.prop_APIUser_0.displayName && Sender != -1 && Sender != 0)
+                            {
+                                e6SentCount++;
+                            }
+                            else
+                            {
+                                e6SentCount = 0;
+                            }
+
+                            if (e6SentCount > 1500)
+                            {
+                                ReLogger.Msg($"[photon anti-crash] {SenderPlayer} sent invalid event 6 data, blocking.");
+                                e6SentCount = 0;
+                            }
+
+
+                            return false;
+                        }
+
+                        break;
+                    case 209: // item transfer
+                        return false;
+
+                    case 210: // item ownership
+                        return false;
+
+                }
+            }
+            catch (Il2CppException ERROR)
+            {
+                MelonLogger.Error(ERROR.StackTrace);
+                return true;
+            }
+
+            return true;
+        }
+
+        public static bool FinalIKPatch(IKSolverHeuristic __instance)
+        {
+            if (__instance.maxIterations > 64)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        private static bool IKSolverAimPatch(ref IKSolverAim __instance)
+        {
+            __instance.clampSmoothing = MelonUtils.Clamp(__instance.clampSmoothing, 0, 2);
+            return true;
+        }
+
+        public static bool PutRequestPatch(string __0, ApiContainer __1, Il2CppSystem.Collections.Generic.Dictionary<string, Il2CppSystem.Object> __2, API.CredentialsBundle __3)
+        {
+            try
+            {
+                if (_WorldSpoof.Value == false)
+                {
+                    return true;
+                }
+
+                if (__0.Contains("visits") || __0.Contains("joins"))
+                {
+                    // idiot proof checks ig
+                    if (!_WorldIdToSpoof.Value.Contains("wrld_"))
+                    {
+                        __2["worldId"] = $"wrld_4432ea9b-729c-46e3-8eaf-846aa0a37fdd:1337";
+                    }
+                    else
+                    {
+                        if (!Regex.IsMatch(_InstanceIdToSpoof.Value, "^[A-Za-z0-9]*$"))
+                        {
+                            __2["worldId"] = $"{_WorldIdToSpoof.Value}:1337";
+                        }
+                    }
+
+                    if (_WorldSpoofWarn.Value)
+                    {
+                        ReLogger.Warning($"You are currently spoofing your world, currently spoofed world: {_WorldIdToSpoof.Value}, currently spoofed InstanceID: {_InstanceIdToSpoof.Value}");
+                    }
+                    __2["worldId"] = $"{_WorldIdToSpoof.Value}:{_InstanceIdToSpoof.Value}";
+                }
+            }
+            catch (Exception e)
+            {
+                ReLogger.Error($"[SendPutRequest] had an error! \n {e}");
             }
 
             return true;

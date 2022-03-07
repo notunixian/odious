@@ -10,7 +10,7 @@ using Photon.Pun;
 using Photon.Realtime;
 using Object = Il2CppSystem.Object;
 
-namespace ReModCE.Photon
+namespace ReModCE.PhotonExtension
 {
     internal static class PhotonExtensions
     {

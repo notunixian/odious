@@ -15,7 +15,7 @@ namespace ReModCE.EvilEyeSDK
     static class PlayerWrapper
     {
         //converted all the bs to one lines to clean the class
-        public static Dictionary<int, VRC.Player> PlayersActorID = new Dictionary<int, VRC.Player>();
+        public static Dictionary<int, Player> PlayersActorID = new Dictionary<int, Player>();
         public static VRC.Player[] GetAllPlayers() => PlayerManager.prop_PlayerManager_0.prop_ArrayOf_Player_0;
         public static VRC.Player GetByUsrID(string usrID) => GetAllPlayers().First(x => x.prop_APIUser_0.id == usrID);
         public static void Teleport(this VRC.Player player) => LocalVRCPlayer().transform.position = player.prop_VRCPlayer_0.transform.position;
@@ -115,6 +115,23 @@ namespace ReModCE.EvilEyeSDK
             VRC.Player player = null;
             PlayersActorID.TryGetValue(actorId, out player);
             return player;
+        }
+        public static List<Player> AllPlayers
+        {
+            get
+            {
+                return PlayerManager.field_Private_Static_PlayerManager_0.prop_ArrayOf_Player_0.ToList<Player>();
+            }
+        }
+        public static int GetActorNumber2(this Player player)
+        {
+            return player.GetVRCPlayerApi().playerId;
+        }
+        public static Player GetPlayer(int ActorNumber)
+        {
+            return (from p in PlayerWrapper.AllPlayers
+                where p.GetActorNumber2() == ActorNumber
+                select p).FirstOrDefault<Player>();
         }
     }
 }

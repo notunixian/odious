@@ -55,7 +55,7 @@
     </Reference>
     <Reference Include="MelonLoader, Version=0.5.2.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\MelonLoader.dll</HintPath>
+      <HintPath>D:\SteamLibrary\steamapps\common\VRChat\MelonLoader\MelonLoader.dll</HintPath>
     </Reference>
     <Reference Include="Photon-DotNet">
       <HintPath>D:\SteamLibrary\steamapps\common\VRChat\MelonLoader\Managed\Photon-DotNet.dll</HintPath>
@@ -109,6 +109,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AssemblyExtensions.cs" />
     <Compile Include="EnumExtensions.cs" />
     <Compile Include="Managers\ConfigManager.cs" />
     <Compile Include="UI\QuickMenu\IButtonPage.cs" />
