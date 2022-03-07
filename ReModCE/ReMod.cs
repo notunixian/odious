@@ -168,7 +168,7 @@ namespace ReModCE
             ReLogger.Msg(ConsoleColor.Cyan, "                       Stellar                            ");
             ReLogger.Msg(ConsoleColor.Cyan, "                     EvilEye Team                         ");
             ReLogger.Msg(ConsoleColor.Cyan, "                        teddy                             ");
-            ReLogger.Msg(ConsoleColor.Cyan, "                        bruce                             ");
+            ReLogger.Msg(ConsoleColor.Cyan, "                        Bruce                             ");
             ReLogger.Msg("------------------------------------------------------------");
         }
 
