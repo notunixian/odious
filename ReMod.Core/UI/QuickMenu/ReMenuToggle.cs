@@ -137,7 +137,7 @@ namespace ReMod.Core.UI.QuickMenu
 
             foreach (var asm in AppDomain.CurrentDomain.GetAssemblies())
             {
-                foreach (var type in asm.GetTypes())
+                foreach (var type in asm.TryGetTypes())
                     TryCacheDeobfuscatedType(type);
             }
         }

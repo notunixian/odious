@@ -4,6 +4,7 @@ using ReMod.Core.Managers;
 using ReMod.Core.UI.QuickMenu;
 using ReModCE.Loader;
 using VRC;
+using System.IO;
 
 namespace ReModCE.Components
 {
@@ -11,6 +12,7 @@ namespace ReModCE.Components
     {
         private ConfigValue<bool> JoinLeaveLogsEnabled;
         private ReMenuToggle _joinLeaveLogsToggle;
+        private const string SavePath = "UserData/Odious/Logs";
 
         public InfoLogsComponent()
         {
@@ -24,7 +26,7 @@ namespace ReModCE.Components
 
             var menu = uiManager.MainMenu.GetMenuPage("Logging");
             _joinLeaveLogsToggle = menu.AddToggle("Join/Leave Logs",
-                "Enable whether player joins/leaves should be logged in console.", JoinLeaveLogsEnabled.SetValue,
+                "Enable whether player joins/leaves should be logged in console. This also logs to your Odious folder.", JoinLeaveLogsEnabled.SetValue,
                 JoinLeaveLogsEnabled);
         }
 
@@ -32,6 +34,24 @@ namespace ReModCE.Components
         {
             if (!JoinLeaveLogsEnabled) return;
             ReLogger.Msg(ConsoleColor.Cyan, $"{player.field_Private_APIUser_0.displayName} joined the instance.");
+            if (!Directory.Exists(SavePath))
+            {
+                Directory.CreateDirectory(SavePath);
+                if (!File.Exists($"{SavePath}/Players.txt"))
+                {
+                    File.Create($"{SavePath}/Players.txt");
+                }
+            }
+
+            using (StreamWriter writer = File.AppendText($"{SavePath}/Players.txt"))
+            {
+                // don't log the local player
+                if (player.field_Private_APIUser_0.displayName == Player.prop_Player_0.field_Private_APIUser_0.displayName)
+                {
+                    return;
+                }
+                writer.WriteLine($"{player.field_Private_APIUser_0.displayName} | {player.field_Private_APIUser_0.id} | seen at {Player.prop_Player_0.prop_APIUser_0.location} \n");
+            }
         }
 
         public override void OnPlayerLeft(Player player)

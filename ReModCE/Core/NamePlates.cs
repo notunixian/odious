@@ -20,6 +20,7 @@ namespace ReModCE.Core
         private TextMeshProUGUI statsText;
         private ImageThreeSlice background;
         private string UserID = "";
+        private Transform stats;
 
         public NamePlates(IntPtr ptr) : base(ptr)
         {
@@ -27,27 +28,7 @@ namespace ReModCE.Core
 
         void Start()
         {
-            Transform stats = Instantiate<Transform>(base.gameObject.transform.Find("Contents/Quick Stats"), base.gameObject.transform.Find("Contents"));
-            // bool active = base.gameObject.transform.Find("UserInterface/Canvas_QuickMenu(Clone)/Container/").gameObject.active;
-
-            // fuck you josh
-            //try
-            //{
-            //    if (active)
-            //    {
-            //        stats.localPosition = new Vector3(0f, 62f, 0f);
-            //    }
-            //    else
-            //    {
-            //        stats.localPosition = new Vector3(0f, 42f, 0f);
-            //    }
-            //}
-            //catch (Exception e)
-            //{
-            //    MelonLoader.MelonLogger.Error($"failed to offset nameplate\n exception: {e}");
-            //    stats.localPosition = new Vector3(0f, 42f, 0f);
-            //}
-            stats.localPosition = new Vector3(0f, -60f, 0f);
+            stats = Instantiate<Transform>(base.gameObject.transform.Find("Contents/Quick Stats"), base.gameObject.transform.Find("Contents"));
             stats.transform.localScale = new Vector3(1f, 1f, 2f);
             stats.parent = base.gameObject.transform.Find("Contents");
             stats.gameObject.SetActive(true);
@@ -73,6 +54,16 @@ namespace ReModCE.Core
             {
                 noUpdateCount = 0;
             }
+
+            if (ReModCE.isQuickMenuOpen)
+            {
+                stats.localPosition = new Vector3(0f, 62f, 0f);
+            }
+            else
+            {
+                stats.localPosition = new Vector3(0f, 42f, 0f);
+            }
+
             frames = player._playerNet.field_Private_Byte_0;
             ping = player._playerNet.field_Private_Byte_1;
             string text = "<color=green>Stable</color>";
@@ -90,18 +81,9 @@ namespace ReModCE.Core
 
             // hi requi! you care about me this much?
             // note to self: this will get really long but it isn't as bad as area51 so ¯\_(ツ)_/¯
-            if (id == "usr_da6894c5-ecc6-4dd5-bceb-9717d131f0d5" || id == "usr_1dedcedc-6d15-48ef-8fed-24ca71d73968" || id == "usr_568df834-d456-48a1-9e8b-bfb6eac30a9d")
+            if (id == "usr_f0b2d38d-6f62-4d0e-9820-e0e741b574d4" || id == "usr_5232c391-d337-42b7-89dc-df2f1947c342")
             {
                 rank = "[<color=#8F9CE6>Odious Staff</color>] |";
-            }
-            else
-            {
-                rank = "";
-            }
-
-            if (id == "usr_f45231cc-299e-4314-809c-cb9c72a03c87" || id == "usr_5709a8c3-f11d-4b6c-af3c-e9eed1183e21")
-            {
-                rank = "[<color=#FEB5FF>Rich Teleswattie $$$</color>] |";
             }
             else
             {

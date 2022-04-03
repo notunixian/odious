@@ -115,29 +115,29 @@ namespace ReModCE.Components
 
             _searchedAvatarList = new ReAvatarList("ReMod API Search", this);
 
-            _favoriteAvatarList = new ReAvatarList("Odious Favorites", this, false);
-            _favoriteAvatarList.AvatarPedestal.field_Internal_Action_3_String_GameObject_AvatarPerformanceStats_0 = new Action<string, GameObject, AvatarPerformanceStats>(OnAvatarInstantiated);
-            _favoriteAvatarList.OnEnable += () =>
-            {
-                // make sure it stays off if it should be off.
-                _favoriteAvatarList.GameObject.SetActive(AvatarFavoritesEnabled);
-            };
+            //_favoriteAvatarList = new ReAvatarList("Odious Favorites", this, false);
+            //_favoriteAvatarList.AvatarPedestal.field_Internal_Action_3_String_GameObject_AvatarPerformanceStats_0 = new Action<string, GameObject, AvatarPerformanceStats>(OnAvatarInstantiated);
+            //_favoriteAvatarList.OnEnable += () =>
+            //{
+            //    // make sure it stays off if it should be off.
+            //    _favoriteAvatarList.GameObject.SetActive(AvatarFavoritesEnabled);
+            //};
 
-            var parent = GameObject.Find("UserInterface/MenuContent/Screens/Avatar/Favorite Button").transform.parent;
-            _favoriteButton = new ReUiButton("Favorite", new Vector2(-600f, 375f), new Vector2(0.5f, 1f),
-                () => FavoriteAvatar(_favoriteAvatarList.AvatarPedestal.field_Internal_ApiAvatar_0),
-                parent);
-            _favoriteButton.GameObject.SetActive(AvatarFavoritesEnabled);
+            //var parent = GameObject.Find("UserInterface/MenuContent/Screens/Avatar/Favorite Button").transform.parent;
+            //_favoriteButton = new ReUiButton("Favorite", new Vector2(-600f, 375f), new Vector2(0.5f, 1f),
+            //    () => FavoriteAvatar(_favoriteAvatarList.AvatarPedestal.field_Internal_ApiAvatar_0),
+            //    parent);
+            //_favoriteButton.GameObject.SetActive(AvatarFavoritesEnabled);
 
-            var changeButton = GameObject.Find("UserInterface/MenuContent/Screens/Avatar/Change Button");
-            if (changeButton != null)
-            {
-                var button = changeButton.GetComponent<Button>();
-                _changeButtonEvent = button.onClick;
+            //var changeButton = GameObject.Find("UserInterface/MenuContent/Screens/Avatar/Change Button");
+            //if (changeButton != null)
+            //{
+            //    var button = changeButton.GetComponent<Button>();
+            //    _changeButtonEvent = button.onClick;
 
-                button.onClick = new Button.ButtonClickedEvent();
-                button.onClick.AddListener(new Action(ChangeAvatarChecked));
-            }
+            //    button.onClick = new Button.ButtonClickedEvent();
+            //    button.onClick.AddListener(new Action(ChangeAvatarChecked));
+            //}
 
 
             _searchAvatarsAction = DelegateSupport.ConvertDelegate<UnityAction<string>>(
@@ -508,12 +508,12 @@ namespace ReModCE.Components
 
                     favResponse.Content.ReadAsStringAsync().ContinueWith(errorData =>
                     {
-                        var errorMessage = JsonConvert.DeserializeObject<ApiError>(errorData.Result).Error;
-                        ReLogger.Error($"Could not (un)favorite avatar: \"{errorMessage}\"");
-                        if (favResponse.StatusCode == HttpStatusCode.Forbidden)
-                        {
-                            MelonCoroutines.Start(ShowAlertDelayed($"Could not (un)favorite avatar\nReason: \"{errorMessage}\""));
-                        }
+                        //var errorMessage = JsonConvert.DeserializeObject<ApiError>(errorData.Result).Error;
+                        ReLogger.Error($"error from requi api, who cares? favorite the avatar anyway.");
+                        //if (favResponse.StatusCode == HttpStatusCode.Forbidden)
+                        //{
+                        //    MelonCoroutines.Start(ShowAlertDelayed($"Could not (un)favorite avatar\nReason: \"{errorMessage}\""));
+                        //}
                     });
                 }
             }, new ReAvatar(apiAvatar));

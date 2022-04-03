@@ -35,6 +35,10 @@
     <PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="0Harmony, Version=2.9.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>D:\SteamLibrary\steamapps\common\VRChat\MelonLoader\0Harmony.dll</HintPath>
+    </Reference>
     <Reference Include="Assembly-CSharp, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <Private>false</Private>
       <SpecificVersion>False</SpecificVersion>
@@ -65,7 +69,8 @@
     <Reference Include="Il2CppSystem.Runtime">
       <HintPath>D:\SteamLibrary\steamapps\common\VRChat\MelonLoader\Managed\Il2CppSystem.Runtime.dll</HintPath>
     </Reference>
-    <Reference Include="MelonLoader">
+    <Reference Include="MelonLoader, Version=0.5.2.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>D:\SteamLibrary\steamapps\common\VRChat\MelonLoader\MelonLoader.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
@@ -263,17 +268,44 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AvatarPostProcess\AntiCrashClothPostProcess.cs" />
+    <Compile Include="AvatarPostProcess\AntiCrashDynamicBoneColliderPostProcess.cs" />
+    <Compile Include="AvatarPostProcess\AntiCrashDynamicBonePostProcess.cs" />
+    <Compile Include="AvatarPostProcess\AntiCrashLightSourcePostProcess.cs" />
+    <Compile Include="AvatarPostProcess\AntiCrashMaterialPostProcess.cs" />
+    <Compile Include="AvatarPostProcess\AntiCrashParticleSystemPostProcess.cs" />
+    <Compile Include="AvatarPostProcess\AntiCrashRendererPostProcess.cs" />
+    <Compile Include="AvatarPostProcess\AntiCrashShaderPostProcess.cs" />
+    <Compile Include="Components\AntiAvatarCrashComponent.cs" />
+    <Compile Include="Components\AvatarFavComponent.cs" />
+    <Compile Include="Components\ClearConsoleComponent.cs" />
+    <Compile Include="Components\CloneByComponent.cs" />
     <Compile Include="Components\CursorColorComponent.cs" />
     <Compile Include="Components\HideSelfComponent.cs" />
+    <Compile Include="Components\HWIDSpoofComponent.cs" />
+    <Compile Include="Components\LoadingMusicComponent.cs" />
     <Compile Include="Components\LogAvatarComponent.cs" />
+    <Compile Include="Components\MenuComponent.cs" />
     <Compile Include="Components\NamePlatesComponent.cs" />
     <Compile Include="Components\PhotonAntiCrashComponent.cs" />
     <Compile Include="Components\PlayerListComponent.cs" />
+    <Compile Include="Components\UILoggerComponent.cs" />
     <Compile Include="Components\WorldSpoofComponent.cs" />
+    <Compile Include="Config\AvatarProtectionConfig.cs" />
+    <Compile Include="Config\Config.cs" />
+    <Compile Include="Core\AntiCrashUtils.cs" />
     <Compile Include="Core\DiscordRPC.cs" />
+    <Compile Include="Core\FastRandom.cs" />
     <Compile Include="Core\NamePlates.cs" />
-    <Compile Include="Core\QueueClass.cs" />
-    <Compile Include="EvilEyeSDK\PlayerWrapper.cs" />
+    <Compile Include="Core\ReaderPatches.cs" />
+    <Compile Include="Core\SettingsHandler.cs" />
+    <Compile Include="Core\ShaderProxy.cs" />
+    <Compile Include="Core\ShaderUtils.cs" />
+    <Compile Include="Core\TSAC.cs" />
+    <Compile Include="Exploits\Event6.cs" />
+    <Compile Include="SDK\Utils\GeneralUtils.cs" />
+    <Compile Include="SDK\GeneralWrapper.cs" />
+    <Compile Include="SDK\PlayerWrapper.cs" />
     <Compile Include="Components\AvatarFavoritesComponent.cs" />
     <Compile Include="Components\CalibrationSavingComponent.cs" />
     <Compile Include="Components\CopyUserInformationComponent.cs" />
@@ -299,12 +331,17 @@
     <Compile Include="Core\DynamicContractResolver.cs" />
     <Compile Include="Core\ReAvatar.cs" />
     <Compile Include="Core\TaskExtensions.cs" />
+    <Compile Include="SDK\Utils\DelegateWrappers.cs" />
+    <Compile Include="SDK\Utils\FastMethodInfo.cs" />
+    <Compile Include="SDK\Utils\PlayerInfo.cs" />
+    <Compile Include="SDK\Utils\PlayerRankStatus.cs" />
+    <Compile Include="SDK\Utils\PlayerUtils.cs" />
+    <Compile Include="SDK\Utils\WorldUtils.cs" />
+    <Compile Include="SDK\WorldWrapper.cs" />
     <Compile Include="Exploits\Event1-USpeak.cs" />
-    <Compile Include="Exploits\Event1-USpeak2.cs" />
     <Compile Include="Exploits\ItemLagger.cs" />
     <Compile Include="Exploits\PCAviCrash.cs" />
     <Compile Include="Exploits\QuestAviCrash.cs" />
-    <Compile Include="Exploits\Udon.cs" />
     <Compile Include="Managers\RiskyFunctionsManager.cs" />
     <Compile Include="PhotonExtension\PhotonExtensions.cs" />
     <Compile Include="PhotonExtension\Serialization.cs" />
@@ -363,6 +400,15 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\spoofing.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\odious.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\cursor.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\DxbcShaderFilter.dll" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

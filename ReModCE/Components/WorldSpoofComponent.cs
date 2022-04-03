@@ -52,7 +52,6 @@ namespace ReModCE.Components
                 "Sets the world ID for world spoofing, by default is the VRChat home world.",
                 () =>
                 {
-                    // ReLogger.Msg("called -> buttoninteract -> worldidspoof");
                     PopupTextInput(_WorldIDSpoof, _WorldIdToSpoof, false);
                 });
 
@@ -60,7 +59,6 @@ namespace ReModCE.Components
                 "Sets the instance ID for world spoofing, by default is 1337. Letters and Numbers ONLY for instance id.",
                 () =>
                 {
-                    // ReLogger.Msg("called -> buttoninteract -> instanceidspoof");
                     PopupTextInput(_InstanceIDSpoof, _InstanceIdToSpoof, true);
                 });
 
@@ -68,7 +66,6 @@ namespace ReModCE.Components
                 "Gets the World ID of the current world you are in. (useful for this feature.)",
                 () =>
                 {
-                    // ReLogger.Msg("called -> buttoninteract -> getworldid");
                     if (Clipboard.ContainsText())
                     {
                         Clipboard.Clear();
@@ -80,30 +77,25 @@ namespace ReModCE.Components
                     if (VRC.Player.prop_Player_0.prop_APIUser_0.location != "")
                     {
                         Clipboard.SetText(VRC.Player.prop_Player_0.prop_APIUser_0.location);
-                        ReLogger.Msg($"Copied current world ID ({VRC.Player.prop_Player_0.prop_APIUser_0.location}) to clipboard!");
+                        ReLogger.Msg($"Copied current world ID {VRC.Player.prop_Player_0.prop_APIUser_0.location} to clipboard!");
                     }
                 });
         }
 
         private void PopupTextInput(ReMenuButton button, MelonPreferences_Entry<string> configValue, bool isInstanceSpoof)
         {
-            // ReLogger.Msg("called -> PopupTextInput");
-
             var category = MelonPreferences.GetCategory("ReModCE");
             _WorldIdToSpoof = (MelonPreferences_Entry<string>)category.GetEntry("WorldIdToSpoof");
             _InstanceIdToSpoof = (MelonPreferences_Entry<string>)category.GetEntry("InstanceIdToSpoof");
-            // ReLogger.Msg("called -> finished getentry");
 
             VRCUiPopupManager.prop_VRCUiPopupManager_0.ShowInputPopupWithCancel("Input World/Instance ID to spoof",
                 $"", InputField.InputType.Standard, false, "Submit",
                 (s, k, t) =>
                 {
-                    // ReLogger.Msg("called -> ShowInputPopupWithCancel");
 
                     if (string.IsNullOrEmpty(s))
                         return;
 
-                    // ReLogger.Msg("called -> ShowInputPopupWithCancel -> input -> check");
                     if (s.Contains("worldId=") && s.Contains("&instanceId"))
                     {
                         var worldIdIndex = s.IndexOf("worldId=");
@@ -122,7 +114,7 @@ namespace ReModCE.Components
                             ReLogger.Msg($"parsed vrc join link to {s}");
                         }
                     }
-                    // ReLogger.Msg("called -> ShowInputPopupWithCancel -> input -> check2");
+
                     if (isInstanceSpoof == true)
                     {
                         if (!Regex.IsMatch(s, "^[A-Za-z0-9]*$"))
@@ -139,7 +131,6 @@ namespace ReModCE.Components
                             return;
                         }
                     }
-                    // ReLogger.Msg("called -> set");
 
                     // do this check since the game does not really like me
                     if (!isInstanceSpoof)
@@ -154,7 +145,6 @@ namespace ReModCE.Components
                         MelonPreferences.Save();
                     }
 
-                    // ReLogger.Msg("called -> finished");
                 }, null);
         }
 
