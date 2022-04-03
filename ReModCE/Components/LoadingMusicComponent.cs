@@ -89,16 +89,9 @@ namespace ReModCE.Components
             {
                 if (GameObject.Find("[Odious] Loading Music Player").GetComponent<AudioSource>().isPlaying == false)
                 {
-                    goto Continue;
+                    return;
                 }
                 GameObject.Find("[Odious] Loading Music Player").GetComponent<AudioSource>().Stop();
-            }
-
-            Continue:
-            if (GameObject.Find("UserInterface/MenuContent/Popups/LoadingPopup").activeSelf &&
-                GameObject.Find("[Odious] Loading Music Player").GetComponent<AudioSource>().isPlaying == false)
-            {
-                GameObject.Find("[Odious] Loading Music Player").GetComponent<AudioSource>().Play();
             }
         }
 
@@ -196,6 +189,7 @@ namespace ReModCE.Components
             sound.gameObject.AddComponent<AudioSource>();
             var audio = sound.GetComponent<AudioSource>();
             UnityEngine.Object.DontDestroyOnLoad(sound);
+            audio.volume = 60f;
 
             FileInfo[] files = new DirectoryInfo(Environment.CurrentDirectory).GetFiles();
             System.Random rand = new System.Random();
@@ -258,6 +252,7 @@ namespace ReModCE.Components
                 }
 
                 audio.clip = c;
+                audio.volume = 60f;
                 audio.loop = true;
                 audio.Play();
             }
@@ -287,6 +282,7 @@ namespace ReModCE.Components
                 }
 
                 audio.clip = c;
+                audio.volume = 60f;
                 audio.loop = true;
                 audio.Play();
             }

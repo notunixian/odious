@@ -315,6 +315,7 @@ namespace ReModCE.Components
                     if (blacklisting)
                     {
                         Configuration.GetAvatarProtectionsConfig().BlacklistedAvatars.Add(s, true);
+                        Configuration.SaveAvatarProtectionsConfig();
                     }
                     else
                     {
