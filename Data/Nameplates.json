@@ -1,1 +1,1 @@
-{"records":[{"id":1,"UserID":"usr_f0b2d38d-6f62-4d0e-9820-e0e741b574d4","Text":"<color=#46eb34>Developer</color>","Active":true},{"id":2,"UserID":"usr_a73e8ba3-c03c-4124-94c6-4d48a900513f","Text":"<color=#46eb34>TEST</color>","Active":true}]}
+{"records":[{"id":1,"UserID":"usr_f0b2d38d-6f62-4d0e-9820-e0e741b574d4","Text":"<gradient="Blue to Purple - Vertical">Developer</gradient>","Active":true},{"id":2,"UserID":"usr_a73e8ba3-c03c-4124-94c6-4d48a900513f","Text":"<color=#46eb34>TEST</color>","Active":true}]}
