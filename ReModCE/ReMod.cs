@@ -186,7 +186,7 @@ namespace ReModCE
             ReLogger.Msg(ConsoleColor.Cyan, "        Stop paying for features that are open source.      ");
             ReLogger.Msg(ConsoleColor.Cyan, "                                                            ");
             ReLogger.Msg(ConsoleColor.Cyan, "                         Credits:                           ");
-            ReLogger.Msg(ConsoleColor.Cyan, "              Requi, Stellar, Evileye, lenoob               ");
+            ReLogger.Msg(ConsoleColor.Cyan, "     Requi, Stellar, Evileye, lenoob, Killer_skidpoint      ");
             ReLogger.Msg("==============================================================");
 
         }
