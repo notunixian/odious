@@ -40,6 +40,7 @@ namespace ReModCE.EvilEyeSDK
         public static bool ClientDetect(this VRC.Player player) => player.GetFrames() > 90 || player.GetFrames() < 1 || player.GetPing() > 665 || player.GetPing() < 0;
         public static ApiAvatar GetAPIAvatar(this VRCPlayer vrcPlayer) => vrcPlayer.prop_ApiAvatar_0;
         public static ApiAvatar GetAPIAvatar(this VRC.Player player) => player.GetVRCPlayer().GetAPIAvatar();
+        public static ApiAvatar GetAvatarInfo(this Player Instance) => Instance?.prop_ApiAvatar_0;
         public static void Tele2MousePos()
         {
             Ray posF = new Ray(Camera.main.transform.position, Camera.main.transform.forward); //pos, directon 
@@ -83,6 +84,15 @@ namespace ReModCE.EvilEyeSDK
             {
                 return "<color=grey>PC</color>";
             }
+        }
+
+        public static string GetAvatarStatus(this Player player)
+        {
+            string status = player.GetAvatarInfo().releaseStatus.ToLower();
+            if (status == "public")
+                return "<color=green>" + "Public" + "</color>";
+            else
+                return "<color=red>" + "Private" + "</color>";
         }
 
         public static void DelegateSafeInvoke(this Delegate @delegate, params object[] args)

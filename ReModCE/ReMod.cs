@@ -20,6 +20,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using Il2CppSystem.Threading;
@@ -38,6 +39,7 @@ using VRCSDK2;
 using ConfigManager = ReMod.Core.Managers.ConfigManager;
 using ReModCE.SDK;
 using ReModCE.Config;
+using System.Net;
 
 namespace ReModCE
 {
@@ -53,6 +55,7 @@ namespace ReModCE
         public static bool IsNocturnalLoaded { get; private set; }
         public static bool IsVoidLoaded { get; private set; }
         public static bool IsAbyssLoaded { get; private set; }
+        public static bool IsMonkeyLoaded { get; private set; }
         public static bool IsOculus { get; private set; }
         public string ID { get; set; }
         public MethodBase TargetMethod { get; set; }
@@ -100,7 +103,26 @@ namespace ReModCE
         // this prevents some garbage collection bullshit
         private static List<object> ourPinnedDelegates = new List<object>();
         public static HarmonyLib.Harmony Harmony { get; private set; }
+        public static List<NameplateModel> nameplateModels;
 
+        // retrives nameplate custom ranks from a file on github
+        // this should only be called when it's needed, like when the application starts or when a scene is loaded.
+        private static void UpdateNamePlates()
+        {
+            string url = "https://raw.githubusercontent.com/notunixian/odious/main/Data/Nameplates.json";
+
+            HttpWebRequest WebReq = (HttpWebRequest)WebRequest.Create(url);
+            WebReq.Method = "GET";
+            HttpWebResponse WebResp = (HttpWebResponse)WebReq.GetResponse();
+            string jsonString;
+            using (Stream stream = WebResp.GetResponseStream())
+            {
+                StreamReader reader = new StreamReader(stream, System.Text.Encoding.UTF8);
+                jsonString = reader.ReadToEnd();
+            }
+            NameplateModelList items = JsonConvert.DeserializeObject<NameplateModelList>(jsonString);
+            nameplateModels = items.records;
+        }
 
         public static void OnApplicationStart()
         {
@@ -119,6 +141,7 @@ namespace ReModCE
             IsRubyLoaded = File.Exists("hid.dll");
             IsNocturnalLoaded = MelonHandler.Mods.Any(m => m.Info.Name == "Nocturnal-V2");
             IsAbyssLoaded = MelonHandler.Mods.Any(m => m.Info.Name == "AbyssLoader");
+            IsMonkeyLoaded = MelonHandler.Mods.Any(m => m.Info.Name == "FunnyUi");
 
             var ourAssembly = Assembly.GetExecutingAssembly();
             var resources = ourAssembly.GetManifestResourceNames();
@@ -139,7 +162,7 @@ namespace ReModCE
 
             EnableDisableListener.RegisterSafe();
             ClassInjector.RegisterTypeInIl2Cpp<WireframeEnabler>();
-            ClassInjector.RegisterTypeInIl2Cpp<NamePlates>();
+            ClassInjector.RegisterTypeInIl2Cpp<CustomNameplate>();
             MelonCoroutines.Start(UILoggerComponent.MakeUI());
             ReaderPatches.ApplyPatches();
 
@@ -151,6 +174,7 @@ namespace ReModCE
             Configuration.LoadAllConfigs();
             InitializePatches();
             InitializeModComponents();
+            UpdateNamePlates();
 
             //handlers = default(DiscordRPC.EventHandlers);
             //DiscordRPC.Initialize("946967250378842112", ref handlers, true, null);
@@ -186,7 +210,7 @@ namespace ReModCE
             ReLogger.Msg(ConsoleColor.Cyan, "        Stop paying for features that are open source.      ");
             ReLogger.Msg(ConsoleColor.Cyan, "                                                            ");
             ReLogger.Msg(ConsoleColor.Cyan, "                         Credits:                           ");
-            ReLogger.Msg(ConsoleColor.Cyan, "     Requi, Stellar, Evileye, lenoob, Killer_skidpoint      ");
+            ReLogger.Msg(ConsoleColor.Cyan, "              Requi, Stellar, Evileye, lenoob               ");
             ReLogger.Msg("==============================================================");
 
         }
@@ -378,7 +402,7 @@ namespace ReModCE
         {
             ReLogger.Msg("Initializing UI...");
 
-            _uiManager = new UiManager("<color=#8c99e1>Odious [Experimental]</color>", ResourceManager.GetSprite("remodce.remod"));
+            _uiManager = new UiManager("<color=#8c99e1>Odious</color>", ResourceManager.GetSprite("remodce.remod"));
             WingMenu = ReMirroredWingMenu.Create("Odious", "Open the Odious menu", ResourceManager.GetSprite("remodce.remod"));
 
             _uiManager.MainMenu.AddMenuPage("Movement", "Access movement related settings", ResourceManager.GetSprite("remodce.running"));
@@ -478,6 +502,7 @@ namespace ReModCE
 
         public static void OnSceneWasLoaded(int buildIndex, string sceneName)
         {
+            UpdateNamePlates();
             foreach (var m in Components)
             {
                 m.OnSceneWasLoaded(buildIndex, sceneName);
@@ -847,6 +872,8 @@ namespace ReModCE
             if (Configuration.GetAvatarProtectionsConfig().WhitelistedAvatars.ContainsKey(text))
             {
                 ReLogger.Msg($"[Avatar Anti-Crash] Skipping avatar ({text}) due to it being whitelisted.");
+                return originalInstantiateDelegate(assetPtr, pos, rot, allowCustomShaders, isUI, validate,
+                    nativeMethodPointer);
             }
 
             bool activeSelf = gameObject.activeSelf;
@@ -1036,27 +1063,27 @@ namespace ReModCE
                         num10++;
                     }
                 }
-                else if (parentConstraint != null)
+                else if (parentConstraint != null && Configuration.GetAvatarProtectionsConfig().AntiConstraintsCrash)
                 {
                     AntiCrashUtils.ProcessConstraint(parentConstraint, ref currentConstraints, ref nukedConstraints);
                 }
-                else if (rotationConstraint != null)
+                else if (rotationConstraint != null && Configuration.GetAvatarProtectionsConfig().AntiConstraintsCrash)
                 {
                     AntiCrashUtils.ProcessConstraint(rotationConstraint, ref currentConstraints, ref nukedConstraints);
                 }
-                else if (positionConstraint != null)
+                else if (positionConstraint != null && Configuration.GetAvatarProtectionsConfig().AntiConstraintsCrash)
                 {
                     AntiCrashUtils.ProcessConstraint(positionConstraint, ref currentConstraints, ref nukedConstraints);
                 }
-                else if (scaleConstraint != null)
+                else if (scaleConstraint != null && Configuration.GetAvatarProtectionsConfig().AntiConstraintsCrash)
                 {
                     AntiCrashUtils.ProcessConstraint(scaleConstraint, ref currentConstraints, ref nukedConstraints);
                 }
-                else if (lookAtConstraint != null)
+                else if (lookAtConstraint != null && Configuration.GetAvatarProtectionsConfig().AntiConstraintsCrash)
                 {
                     AntiCrashUtils.ProcessConstraint(lookAtConstraint, ref currentConstraints, ref nukedConstraints);
                 }
-                else if (aimConstraint != null)
+                else if (aimConstraint != null && Configuration.GetAvatarProtectionsConfig().AntiConstraintsCrash)
                 {
                     AntiCrashUtils.ProcessConstraint(aimConstraint, ref currentConstraints, ref nukedConstraints);
                 }
@@ -1264,6 +1291,35 @@ namespace ReModCE
                 ReLogger.Error("Download avatar patch had an error! Exception:", e);
             }
             return onAvatarDownloadStart(thisPtr, apiAvatar, downloadContainer, unknownBool, nativeMethodPointer);
+        }
+
+        private static List<string> DebugLogs = new List<string>();
+        private static int duplicateCount = 1;
+        private static string lastMsg = "";
+        public static void LogDebug(string message)
+        {
+            if (message == lastMsg)
+            {
+                DebugLogs.RemoveAt(DebugLogs.Count - 1);
+                duplicateCount++;
+                DebugLogs.Add($"<color=white><b>[<color=#8c99e1>Odious</color>] {message} <color=red><i>x{duplicateCount}</i></color></b></color>");
+            }
+            else
+            {
+                lastMsg = message;
+                duplicateCount = 1;
+                DebugLogs.Add($"<color=white><b>[<color=#8c99e1>Odious</color>] {message}</b></color>");
+                if (DebugLogs.Count == 25)
+                {
+                    DebugLogs.RemoveAt(0);
+                }
+            }
+            DebugMenuComponent.debugLog.text.text = string.Join("\n", DebugLogs.Take(25));
+            DebugMenuComponent.debugLog.text.enableWordWrapping = false;
+            DebugMenuComponent.debugLog.text.fontSizeMin = 25;
+            DebugMenuComponent.debugLog.text.fontSizeMax = 30;
+            DebugMenuComponent.debugLog.text.alignment = TMPro.TextAlignmentOptions.Left;
+            DebugMenuComponent.debugLog.text.verticalAlignment = TMPro.VerticalAlignmentOptions.Top;
         }
     }
 }

@@ -34,6 +34,7 @@ namespace ReModCE.Components
         {
             if (!JoinLeaveLogsEnabled) return;
             ReLogger.Msg(ConsoleColor.Cyan, $"{player.field_Private_APIUser_0.displayName} joined the instance.");
+            ReModCE.LogDebug($"<color=green>[+]</color> {player.field_Private_APIUser_0.displayName}");
             if (!Directory.Exists(SavePath))
             {
                 Directory.CreateDirectory(SavePath);
@@ -58,6 +59,7 @@ namespace ReModCE.Components
         {
             if (!JoinLeaveLogsEnabled) return;
             ReLogger.Msg(ConsoleColor.White, $"{player.field_Private_APIUser_0.displayName} left the instance.");
+            ReModCE.LogDebug($"<color=red>[-]</color> {player.field_Private_APIUser_0.displayName}");
         }
     }
 }

@@ -29,8 +29,9 @@ namespace ReModCE.Config
 
 		public bool AntiLightSourceCrash = false;
 
+        public bool AntiConstraintsCrash = false;
 
-		public bool AntiPhysicsCrash = false;
+        public bool AntiPhysicsCrash = false;
 
 		public bool AntiBlendShapeCrash = false;
 

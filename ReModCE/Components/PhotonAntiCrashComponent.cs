@@ -100,7 +100,7 @@ namespace ReModCE.Components
                 //string SenderPlayer = player != null ? player.prop_APIUser_0.displayName : "";
                 byte code = __0.Code;
 
-                if (code == 1 || code == 6 || code == 7 || code == 9 || code == 209 || code == 210)
+                if (code == 1 || code == 6 || code == 9 || code == 209 || code == 210)
                 {
                     if (BlockedSpam.ContainsKey(code))
                     {
@@ -134,10 +134,6 @@ namespace ReModCE.Components
                                 case 6:
                                     num2 = 100;
                                     num = SpamAmount[code] - 100;
-                                    break;
-                                case 7:
-                                    num2 = 20 * ReModCE.OurPhotonViews.Count + ReModCE.CurrentPhotonPlayers;
-                                    num = 1.5f;
                                     break;
                                 case 9:
                                     num2 = 10 * ReModCE.OurPhotonViews.Count + ReModCE.CurrentPhotonPlayers;

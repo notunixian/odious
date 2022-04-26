@@ -34,6 +34,7 @@ namespace ReModCE.Components
         public ConfigValue<bool> AntiPhysicsCrashEnabled;
         public ConfigValue<bool> AntiBlendShapeCrashEnabled;
         public ConfigValue<bool> AntiAvatarAudioMixerCrashEnabled;
+        public ConfigValue<bool> AntiConstraintsCrashEnabled;
 
         public static ReMenuToggle AntiShaderCrashToggled;
         public static ReMenuToggle AntiAudioCrashToggled;
@@ -47,6 +48,7 @@ namespace ReModCE.Components
         public static ReMenuToggle AntiPhysicsCrashToggled;
         public static ReMenuToggle AntiBlendShapeCrashToggled;
         public static ReMenuToggle AntiAvatarAudioMixerCrashToggled;
+        public static ReMenuToggle AntiConstraintsCrashToggled;
         public static ReMenuButton WhitelistByID;
         public static ReMenuButton BlacklistByID;
 
@@ -86,13 +88,17 @@ namespace ReModCE.Components
             AntiBlendShapeCrashEnabled = new ConfigValue<bool>(nameof(AntiBlendShapeCrashEnabled), false);
             AntiBlendShapeCrashEnabled.OnValueChanged += () => AntiBlendShapeCrashToggled.Toggle(AntiBlendShapeCrashEnabled);
 
-            AntiAvatarAudioMixerCrashEnabled = new ConfigValue<bool>(nameof(AntiAvatarAudioMixerCrashEnabled), false);
+            AntiAvatarAudioMixerCrashEnabled = new ConfigValue<bool>(nameof(AntiAvatarAudioMixerCrashEnabled), true);
             AntiAvatarAudioMixerCrashEnabled.OnValueChanged += () => AntiAvatarAudioMixerCrashToggled.Toggle(AntiAvatarAudioMixerCrashEnabled);
+
+            AntiConstraintsCrashEnabled = new ConfigValue<bool>(nameof(AntiConstraintsCrashEnabled), false);
+            AntiConstraintsCrashEnabled.OnValueChanged += () => AntiConstraintsCrashToggled.Toggle(AntiConstraintsCrashEnabled);
         }
 
         public override void OnUiManagerInit(UiManager uiManager)
         {
             var menu = uiManager.MainMenu.GetCategoryPage("Safety").GetCategory("Avatars");
+
             var mainmenu = menu.AddMenuPage("Avatar Protections", "Settings related to Avatar Protections \n <color=red><b>WARNING:</b></color> A lot of these features are experimental, as this is my first time trying avatar anti-crash.", ResourceManager.GetSprite("remodce.arms-up"));
 
             AntiShaderCrashToggled = mainmenu.AddToggle("Shader Crash", "Prevents malicious shaders from crashing you.",
@@ -117,8 +123,8 @@ namespace ReModCE.Components
                 b => { AntiLightSourceCrashEnabled.SetValue(b); ToggleLight(b); }, AntiLightSourceCrashEnabled);
             AntiPhysicsCrashToggled = mainmenu.AddToggle("Physics Crash", "Prevents crashes in all physics related components.",
                 b => { AntiPhysicsCrashEnabled.SetValue(b); TogglePhysic(b); }, AntiPhysicsCrashEnabled);
-            AntiAvatarAudioMixerCrashToggled = mainmenu.AddToggle("AudioMixer Crash", "Prevents an audiomixer crash that causes RAM spikes from malicious avatars.",
-                b => { AntiAvatarAudioMixerCrashEnabled.SetValue(b); ToggleMixer(b); }, AntiAvatarAudioMixerCrashEnabled);
+            AntiConstraintsCrashToggled = mainmenu.AddToggle("Constraints Crash", "Removes/prevents malicious constraints from crashing you.",
+                b => { AntiConstraintsCrashEnabled.SetValue(b); ToggleMixer(b); }, AntiConstraintsCrashEnabled);
 
             WhitelistByID = menu.AddButton("Whitelist By ID", "Whitelist an avatar by the Avatar ID", () =>
             {
@@ -289,12 +295,12 @@ namespace ReModCE.Components
         {
             if (enabled)
             {
-                Configuration.GetAvatarProtectionsConfig().AntiAvatarAudioMixerCrash = true;
+                Configuration.GetAvatarProtectionsConfig().AntiConstraintsCrash = true;
                 Configuration.SaveAvatarProtectionsConfig();
             }
             else
             {
-                Configuration.GetAvatarProtectionsConfig().AntiAvatarAudioMixerCrash = false;
+                Configuration.GetAvatarProtectionsConfig().AntiConstraintsCrash = false;
                 Configuration.SaveAvatarProtectionsConfig();
             }
         }

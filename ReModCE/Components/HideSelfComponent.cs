@@ -40,6 +40,7 @@ namespace ReModCE.Components
             if (!_HideSelfEnabled)
             {
                 AssetBundleDownloadManager.field_Private_Static_AssetBundleDownloadManager_0.gameObject.SetActive(true);
+                PlayerWrapper.LocalVRCPlayer().prop_VRCAvatarManager_0.gameObject.SetActive(true);
                 PlayerExtensions.ReloadAvatar(PlayerWrapper.LocalVRCPlayer());
             }
         }

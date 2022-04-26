@@ -15,68 +15,60 @@ using VRC.Core;
 
 namespace ReModCE.Components
 {
-    internal class NamePlatesComponent : ModComponent
-    {
-        private ConfigValue<bool> NameplatesEnabled;
-        private static ReMenuToggle _NameplatesToggled;
-        public NamePlatesComponent()
-        {
-            NameplatesEnabled = new ConfigValue<bool>(nameof(NameplatesEnabled), false);
-        }
-        public override void OnUiManagerInit(UiManager uiManager)
-        {
-            var menu = uiManager.MainMenu.GetCategoryPage("Visuals").GetCategory("Nametags");
-            if(NameplatesEnabled == null)
-            {
-                MelonLoader.MelonLogger.Msg($"bruh wtf");
-            }
-            _NameplatesToggled = menu.AddToggle("Nametags", "Displays information about players above their heads.", b => { NameplatesEnabled.SetValue(b); Nameplates(b); }, NameplatesEnabled);
-        }
+    //internal class NamePlatesComponent : ModComponent
+    //{
+    //    private ConfigValue<bool> NameplatesEnabled;
+    //    private static ReMenuToggle _NameplatesToggled;
+    //    public NamePlatesComponent()
+    //    {
+    //        NameplatesEnabled = new ConfigValue<bool>(nameof(NameplatesEnabled), false);
+    //        NameplatesEnabled.OnValueChanged += () => _NameplatesToggled.Toggle(NameplatesEnabled);
+    //    }
+    //    public override void OnUiManagerInit(UiManager uiManager)
+    //    {
+    //        var menu = uiManager.MainMenu.GetCategoryPage("Visuals").GetCategory("Nametags");
+    //        _NameplatesToggled = menu.AddToggle("Nametags", "Displays information about players above their heads.", b => { NameplatesEnabled.SetValue(b); Nameplates(b); }, NameplatesEnabled);
+    //    }
 
-        public void Nameplates(bool enabled)
-        {
-            this.RunOnce(enabled);
-        }
+    //    public void Nameplates(bool enabled)
+    //    {
+    //        this.RunOnce(enabled);
+    //    }
 
-        public override void OnUpdate()
-        {
-            base.OnUpdate();
-        }
+    //    public void RunOnce(bool enabled)
+    //    {
+    //        if(enabled == false)
+    //        {
+    //            return;
+    //        }
 
-        public void RunOnce(bool enabled)
-        {
-            if(enabled == false)
-            {
-                return;
-            }
+    //        try
+    //        {
+    //            for (int i = 0; i < PlayerWrapper.GetAllPlayers().Length; i++)
+    //            {
+    //                Player player = PlayerWrapper.GetAllPlayers()[i];
+    //                NamePlates customNameplate = player.transform.Find("Player Nameplate/Canvas/Nameplate").gameObject.AddComponent<NamePlates>();
+    //                customNameplate.player = player;
+    //                bool flag = i >= PlayerWrapper.GetAllPlayers().Length;
+    //                if (flag)
+    //                {
+    //                    break;
+    //                }
+    //            }
+    //        }
+    //        catch (Exception ex)
+    //        {
+    //            MelonLoader.MelonLogger.Msg(ex.Message);
+    //        }
+    //    }
 
-            try
-            {
-                for (int i = 0; i < PlayerWrapper.GetAllPlayers().Length; i++)
-                {
-                    Player player = PlayerWrapper.GetAllPlayers()[i];
-                    NamePlates customNameplate = player.transform.Find("Player Nameplate/Canvas/Nameplate").gameObject.AddComponent<NamePlates>();
-                    customNameplate.player = player;
-                    bool flag = i >= PlayerWrapper.GetAllPlayers().Length;
-                    if (flag)
-                    {
-                        break;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                MelonLoader.MelonLogger.Msg(ex.Message);
-            }
-        }
+    //    public override void OnPlayerJoined(Player player)
+    //    {
+    //        if (!NameplatesEnabled)
+    //            return;
 
-        public override void OnPlayerJoined(Player player)
-        {
-            if (!NameplatesEnabled)
-                return;
-
-            NamePlates customNameplate = player.transform.Find("Player Nameplate/Canvas/Nameplate").gameObject.AddComponent<NamePlates>();
-            customNameplate.player = player;
-        }            
-    }
+    //        NamePlates customNameplate = player.transform.Find("Player Nameplate/Canvas/Nameplate").gameObject.AddComponent<NamePlates>();
+    //        customNameplate.player = player;
+    //    }            
+    //}
 }

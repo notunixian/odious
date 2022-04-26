@@ -281,6 +281,8 @@
     <Compile Include="Components\ClearConsoleComponent.cs" />
     <Compile Include="Components\CloneByComponent.cs" />
     <Compile Include="Components\CursorColorComponent.cs" />
+    <Compile Include="Components\CustomNameplateComponent.cs" />
+    <Compile Include="Components\DebugMenuComponent.cs" />
     <Compile Include="Components\HideSelfComponent.cs" />
     <Compile Include="Components\HWIDSpoofComponent.cs" />
     <Compile Include="Components\LoadingMusicComponent.cs" />
@@ -288,7 +290,6 @@
     <Compile Include="Components\MenuComponent.cs" />
     <Compile Include="Components\NamePlatesComponent.cs" />
     <Compile Include="Components\PhotonAntiCrashComponent.cs" />
-    <Compile Include="Components\PlayerListComponent.cs" />
     <Compile Include="Components\UILoggerComponent.cs" />
     <Compile Include="Components\WorldSpoofComponent.cs" />
     <Compile Include="Config\AvatarProtectionConfig.cs" />
@@ -296,6 +297,7 @@
     <Compile Include="Core\AntiCrashUtils.cs" />
     <Compile Include="Core\DiscordRPC.cs" />
     <Compile Include="Core\FastRandom.cs" />
+    <Compile Include="Core\NameplateModel.cs" />
     <Compile Include="Core\NamePlates.cs" />
     <Compile Include="Core\ReaderPatches.cs" />
     <Compile Include="Core\SettingsHandler.cs" />
@@ -303,6 +305,7 @@
     <Compile Include="Core\ShaderUtils.cs" />
     <Compile Include="Core\TSAC.cs" />
     <Compile Include="Exploits\Event6.cs" />
+    <Compile Include="Managers\QMLable.cs" />
     <Compile Include="SDK\Utils\GeneralUtils.cs" />
     <Compile Include="SDK\GeneralWrapper.cs" />
     <Compile Include="SDK\PlayerWrapper.cs" />
