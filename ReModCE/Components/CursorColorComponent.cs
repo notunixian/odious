@@ -21,6 +21,7 @@ namespace ReModCE.Components
 		private static ReMenuToggle _CursorColorToggled;
 		private ConfigValue<Color> CursorColor;
 		private ReMenuButton _CursorColorButton;
+        private GameObject CursorObject;
 		public CursorColorComponent()
 		{
 			Color color = new Color(0f, 0.848f, 1f, 1f);
@@ -30,7 +31,8 @@ namespace ReModCE.Components
 			{
 				CursorColorComponent._CursorColorToggled.Toggle(this._CursorColorEnabled, true, false);
 			};
-		}
+			CursorObject = GameObject.Find("_Application/CursorManager/MouseArrow/VRCUICursorIcon");
+        }
 		public override void OnUiManagerInit(UiManager uiManager)
 		{
 			ReMenuCategory visualMenu = uiManager.MainMenu.GetCategoryPage("Visuals").GetCategory("Cursor");
@@ -81,7 +83,26 @@ namespace ReModCE.Components
 			}
 		}
 
-		public override void OnPreferencesSaved()
+		// do this double check cause someone told me it doesn't set it sometimes at start
+        public override void OnUpdate()
+        {
+            if (!this._CursorColorEnabled)
+            {
+                return;
+            }
+
+            if (CursorObject.GetComponent<SpriteRenderer>().color == this.CursorColor)
+            {
+                return;
+            }
+            else
+            {
+                CursorObject.GetComponent<SpriteRenderer>().color = this.CursorColor;
+            }
+        }
+
+
+        public override void OnPreferencesSaved()
 		{
 			if (!this._CursorColorEnabled)
 			{
