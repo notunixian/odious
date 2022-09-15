@@ -7,5 +7,5 @@ You are free to look at the VRChat client that was here in the previous commits,
 
 All in all, I thank everyone that supported me or even used Odious when it was an actual VRChat client (even if it was really bad and pasted)
 
-Hope you all the best futures,
+Hope you all the best futures,\
 Unixian.
